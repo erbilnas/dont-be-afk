@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Postinstall script for Don't Be AFK
+# This script runs after the app is installed
+
+set -e
+
+APP_NAME="DontBeAFK"
+APP_PATH="/Applications/${APP_NAME}.app"
+
+# Check if app was installed
+if [ ! -d "$APP_PATH" ]; then
+    echo "Error: ${APP_NAME}.app not found in /Applications"
+    exit 1
+fi
+
+# Set proper permissions
+chmod -R 755 "$APP_PATH"
+
+# Set executable permissions on the app bundle
+chmod +x "${APP_PATH}/Contents/MacOS/${APP_NAME}"
+
+# Create symlink to bash script if it exists in the app bundle
+if [ -f "${APP_PATH}/Contents/Resources/bin/dont-be-afk" ]; then
+    chmod +x "${APP_PATH}/Contents/Resources/bin/dont-be-afk"
+fi
+
+# Remove quarantine attribute (allows app to run without Gatekeeper warning)
+xattr -d com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+
+echo "Don't Be AFK installed successfully!"
+echo ""
+echo "To use the app:"
+echo "  1. Open /Applications/${APP_NAME}.app"
+echo "  2. Grant accessibility permissions when prompted"
+echo "  3. Configure your settings and start the automation"
+echo ""
+echo "Note: You may need to grant accessibility permissions in:"
+echo "  System Settings → Privacy & Security → Accessibility"
+
+exit 0

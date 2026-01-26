@@ -1,0 +1,49 @@
+# Xcode
+build/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/contents.xcworkspacedata
+*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# App build
+DontBeAFK.app/
+
+# Installer and release files
+pkg/*.pkg
+*.pkg
+*.dmg
+release/
+
+# Swift Package Manager
+.swiftpm/
+.build/
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# CocoaPods
+Pods/
+
+# AppCode
+.idea/
+
+# User-specific files
+*.swp
+*.swo
+*~

@@ -8,14 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source all modules
-source "$LIB_DIR/config.sh"
-source "$LIB_DIR/logger.sh"
-source "$LIB_DIR/utils.sh"
-source "$LIB_DIR/validation.sh"
-source "$LIB_DIR/process.sh"
-source "$LIB_DIR/install.sh"
-source "$LIB_DIR/input.sh"
-source "$LIB_DIR/click.sh"
+source "$LIB_DIR/source-all.sh"
 
 # Global variables
 x_coord=$DEFAULT_X
@@ -175,14 +168,7 @@ if [[ "$command" == "start" ]]; then
 # Wrapper script for background execution
 SCRIPT_DIR="$SCRIPT_DIR"
 LIB_DIR="$LIB_DIR"
-source "\$LIB_DIR/config.sh"
-source "\$LIB_DIR/logger.sh"
-source "\$LIB_DIR/utils.sh"
-source "\$LIB_DIR/validation.sh"
-source "\$LIB_DIR/process.sh"
-source "\$LIB_DIR/install.sh"
-source "\$LIB_DIR/input.sh"
-source "\$LIB_DIR/click.sh"
+source "\$LIB_DIR/source-all.sh"
 x_coord=$x_coord
 y_coord=$y_coord
 interval=$interval

@@ -4,7 +4,6 @@
 # Handles process lifecycle (start, stop, status)
 
 PID_FILE="$HOME/.dont-be-afk.pid"
-CONFIG_FILE="$HOME/.dont-be-afk-config"
 
 # Function to check if another instance is running
 check_running() {

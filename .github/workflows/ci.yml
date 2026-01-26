@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint:
+    name: Lint Scripts
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install shellcheck
+        run: brew install shellcheck
+      
+      - name: Lint bash scripts
+        run: |
+          shellcheck bin/dont-be-afk || true
+          shellcheck lib/*.sh || true
+          shellcheck install.sh || true
+
+  build-ui:
+    name: Build macOS UI App
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Check if xcodegen is available
+        run: |
+          if command -v xcodegen &> /dev/null; then
+            echo "xcodegen available"
+            xcodegen generate
+          else
+            echo "xcodegen not available, skipping UI build"
+            exit 0
+          fi
+      
+      - name: Build with xcodebuild
+        run: |
+          if [ -d "DontBeAFK.xcodeproj" ]; then
+            xcodebuild -project DontBeAFK.xcodeproj \
+                       -scheme DontBeAFK \
+                       -configuration Release \
+                       clean build
+          else
+            echo "No Xcode project found, skipping build"
+          fi

@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-and-release:
+    name: Build and Create Release
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION="1.0.0"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version: $VERSION"
+      
+      - name: Build macOS App
+        run: |
+          xcodebuild -project DontBeAFK.xcodeproj \
+                     -scheme DontBeAFK \
+                     -configuration Release \
+                     -derivedDataPath ./build \
+                     clean build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO
+      
+      - name: Create Installer Package
+        run: |
+          # Create package structure
+          mkdir -p pkg/resources pkg/scripts
+          
+          # Create postinstall script
+          cat > pkg/scripts/postinstall << 'EOF'
+          #!/bin/bash
+          chmod -R 755 "/Applications/DontBeAFK.app"
+          chmod +x "/Applications/DontBeAFK.app/Contents/MacOS/DontBeAFK"
+          xattr -d com.apple.quarantine "/Applications/DontBeAFK.app" 2>/dev/null || true
+          exit 0
+          EOF
+          chmod +x pkg/scripts/postinstall
+          
+          # Create distribution.xml
+          cat > pkg/distribution.xml << EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <installer-gui-script minSpecVersion="2">
+              <title>Don't Be AFK ${VERSION}</title>
+              <organization>com.dontbeafk</organization>
+              <domains enable_localSystem="true"/>
+              <options customize="never" require-scripts="false" rootVolumeOnly="true"/>
+              <pkg-ref id="com.dontbeafk.app"/>
+              <choices-outline>
+                  <line choice="default">
+                      <line choice="com.dontbeafk.app"/>
+                  </line>
+              </choices-outline>
+              <choice id="default"/>
+              <choice id="com.dontbeafk.app" visible="false">
+                  <pkg-ref id="com.dontbeafk.app"/>
+              </choice>
+              <pkg-ref id="com.dontbeafk.app" version="${VERSION}" onConclusion="none">DontBeAFK.pkg</pkg-ref>
+          </installer-gui-script>
+          EOF
+          
+          # Build component package
+          pkgbuild --root ./build/Build/Products/Release \
+                   --identifier "com.dontbeafk.app" \
+                   --version "${VERSION}" \
+                   --install-location "/Applications" \
+                   --scripts pkg/scripts \
+                   pkg/DontBeAFK.pkg
+          
+          # Build product archive
+          productbuild --distribution pkg/distribution.xml \
+                       --package-path pkg \
+                       "DontBeAFK-Installer-${VERSION}.pkg"
+      
+      - name: Package Command Line Version (macOS)
+        run: |
+          mkdir -p release
+          tar -czf "release/dont-be-afk-cli-macos-${VERSION}.tar.gz" \
+              bin/dont-be-afk \
+              lib/*.sh \
+              README.md \
+              LICENSE
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            DontBeAFK-Installer-${VERSION}.pkg
+            release/dont-be-afk-cli-macos-${VERSION}.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

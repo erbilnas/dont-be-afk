@@ -1,9 +1,16 @@
 # Don't Be AFK
 
-A powerful bash script that automatically clicks at custom coordinates with a custom interval using cliclick to prevent your macOS system from going idle or AFK.
+[![macOS](https://img.shields.io/badge/platform-macOS-blue.svg)](https://www.apple.com/macos/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Swift](https://img.shields.io/badge/Swift-5.0-orange.svg)](https://swift.org/)
+
+A powerful bash script with a beautiful macOS UI that automatically clicks at custom coordinates with a custom interval using cliclick to prevent your macOS system from going idle or AFK.
+
+Perfect for keeping your Mac active during long-running tasks, preventing screen savers, or maintaining online status.
 
 ## ✨ Features
 
+- ✅ **macOS Native UI** - Beautiful SwiftUI app with menu bar integration
 - ✅ **Configuration Persistence** - Saves your settings automatically
 - ✅ **Human-Readable Intervals** - Use formats like `5m`, `10m`, `1h` instead of just seconds
 - ✅ **Background Mode** - Run in the background as a daemon
@@ -16,31 +23,118 @@ A powerful bash script that automatically clicks at custom coordinates with a cu
 
 ## Requirements
 
-- macOS (cliclick is macOS-specific)
+- macOS 13.0 or later (for the UI app)
+- Xcode 14.0 or later (for building the UI app)
 - Homebrew (for automatic installation, optional)
+- cliclick (installed automatically via installer)
 
 ## Installation & Usage
 
-### Easy Installer (Recommended)
+> **📖 Quick Start:** See [QUICK_INSTALL.md](QUICK_INSTALL.md) for a simple installation guide
 
-The easiest way to install Don't Be AFK on macOS:
+### Quick Start - Download from GitHub Releases
+
+**Option 1: macOS App with UI (PKG Installer) - Recommended**
+1. Go to [Releases](https://github.com/YOUR_USERNAME/dont-be-afk/releases)
+2. Download `DontBeAFK-Installer-1.0.pkg`
+3. Double-click to install
+4. Open from Applications folder
+5. Grant accessibility permissions when prompted
+
+**Option 2: Command Line Version (CLI)**
+1. Go to [Releases](https://github.com/YOUR_USERNAME/dont-be-afk/releases)
+2. Download `dont-be-afk-cli-macos-1.0.0.tar.gz`
+3. Extract: `tar -xzf dont-be-afk-cli-macos-1.0.0.tar.gz`
+4. Install: `cd dont-be-afk-cli && ./install.sh`
+5. Use: `dont-be-afk`
+
+### Build from Source
 
 ```bash
-# Clone or download this repository
-git clone <repository-url>
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/dont-be-afk.git
 cd dont-be-afk
 
-# Run the installer
+# Run the installer (installs dependencies and makes scripts executable)
 ./install.sh
+
+# Start using it!
+dont-be-afk
 ```
 
-The installer will:
-- ✅ Check and install Homebrew (if needed)
-- ✅ Install cliclick dependency
-- ✅ Make all scripts executable
-- ✅ Optionally install to `/usr/local/bin` for global access
+### Installation Methods
+
+**Option 1: Automated Installer (Recommended)**
+```bash
+./install.sh
+```
+The installer automatically:
+- ✅ Checks and installs Homebrew (if needed)
+- ✅ Installs cliclick dependency
+- ✅ Makes all scripts executable
+- ✅ Optionally installs to `/usr/local/bin` for global access
+
+**Option 2: Manual Installation**
+See [INSTALL.md](INSTALL.md) for step-by-step manual installation instructions.
 
 After installation, you can run `dont-be-afk` from anywhere!
+
+### macOS UI App (Recommended)
+
+The project includes a native macOS SwiftUI app for easy control:
+
+#### Option A: Install from GitHub Releases (Easiest)
+
+1. **Download the installer:**
+   - Go to [Releases](https://github.com/YOUR_USERNAME/dont-be-afk/releases)
+   - Download `DontBeAFK-Installer-1.0.pkg`
+
+2. **Install:**
+   - Double-click the `.pkg` file
+   - Follow the installer wizard
+   - Enter your admin password when prompted
+   - The app will be installed to `/Applications`
+
+#### Option B: Build from Source
+
+1. **Open the project in Xcode:**
+   ```bash
+   open DontBeAFK.xcodeproj
+   ```
+
+2. **Build and run:**
+   - Press `Cmd+R` or click the Run button in Xcode
+   - The app will appear in your menu bar with a cursor icon
+
+3. **Or build from command line:**
+   ```bash
+   ./build-ui.sh
+   ```
+
+#### Option C: Create Installer Package
+
+To create your own installer package:
+
+```bash
+./create-installer.sh
+```
+
+This creates a `.pkg` installer and optionally a `.dmg` disk image. See [INSTALLER.md](INSTALLER.md) for details.
+
+#### Using the UI:
+
+- Click the menu bar icon to see quick status and controls
+- Click "Open Settings" to access the full control panel
+- Configure coordinates, interval, and logging preferences
+- Start/stop the automation with a single click
+- View logs directly from the app
+
+The UI app provides:
+- 🎯 **Visual Status Indicator** - See at a glance if automation is running
+- ⚙️ **Easy Configuration** - Set coordinates and interval with a friendly interface
+- 📊 **Log Viewer** - View logs without opening terminal
+- 🚀 **Quick Start/Stop** - Control automation from menu bar or main window
+- 💾 **Auto-save Settings** - Your preferences are saved automatically
 
 ### Manual Installation
 
@@ -241,6 +335,65 @@ Delete the config file to reset:
 rm ~/.dont-be-afk-config
 ```
 
+## Project Structure
+
+```
+dont-be-afk/
+├── bin/
+│   └── dont-be-afk          # Main executable script
+├── lib/                      # Script modules
+│   ├── config.sh            # Configuration management
+│   ├── logger.sh            # Logging functionality
+│   ├── utils.sh             # Utility functions
+│   ├── validation.sh        # Input validation
+│   ├── process.sh           # Process management
+│   ├── install.sh           # Installation helpers
+│   ├── input.sh             # User input handling
+│   └── click.sh             # Click automation
+├── DontBeAFK/               # macOS UI App source
+│   ├── DontBeAFKApp.swift   # App entry point
+│   ├── ScriptController.swift
+│   ├── MainView.swift
+│   ├── MenuBarView.swift
+│   └── Assets.xcassets
+├── install.sh                # Installation script
+├── build-ui.sh              # Build script for UI app
+├── create-installer.sh      # Create .pkg installer
+├── create-dmg.sh           # Create .dmg disk image
+├── package-cli.sh          # Package CLI version for release
+├── project.yml              # xcodegen configuration
+├── README.md
+├── INSTALLER.md             # Installer creation guide
+├── GITHUB_RELEASE.md        # GitHub release guide
+├── LICENSE
+├── CONTRIBUTING.md
+└── CHANGELOG.md
+```
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Before contributing:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Security
+
+Please see [SECURITY.md](SECURITY.md) for information about security vulnerabilities and reporting.
+
 ## License
 
-Open source - feel free to modify and use as needed.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Built with [cliclick](https://www.bluem.net/en/projects/cliclick/) for macOS automation
+- Uses SwiftUI for the native macOS interface
+
+## Star History
+
+If you find this project useful, please consider giving it a ⭐ on GitHub!

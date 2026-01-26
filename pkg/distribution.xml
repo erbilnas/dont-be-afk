@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>Don't Be AFK 1.0</title>
+    <organization>com.dontbeafk</organization>
+    <domains enable_localSystem="true"/>
+    <options customize="never" require-scripts="false" rootVolumeOnly="true"/>
+    <welcome file="welcome.html" mime-type="text/html"/>
+    <conclusion file="conclusion.html" mime-type="text/html"/>
+    <pkg-ref id="com.dontbeafk.app"/>
+    <options customize="never" require-scripts="false"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.dontbeafk.app"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="com.dontbeafk.app" visible="false">
+        <pkg-ref id="com.dontbeafk.app"/>
+    </choice>
+    <pkg-ref id="com.dontbeafk.app" version="1.0" onConclusion="none">DontBeAFK.pkg</pkg-ref>
+</installer-gui-script>
