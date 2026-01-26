@@ -3,11 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		00646705BF339ACE5AC66B2E /* DontBeAFKApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42A1B3FAE70A6EBB3E03F87 /* DontBeAFKApp.swift */; };
+		5829069D2A7AE4E704F463C3 /* ClickOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F154752861576869B5B98DC1 /* ClickOverlayView.swift */; };
 		7F018BEFE83DE24F9EF7A218 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3451600214E1D0BA7C291634 /* MainView.swift */; };
 		EA5536E0604C5A05F7EFED9A /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C229BAFD1C1256D7AB307649 /* MenuBarView.swift */; };
 		F29E5D90248C622B1AD43299 /* ScriptController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D664488FF6E1C39FAC539558 /* ScriptController.swift */; };
@@ -15,12 +16,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		20257829E5FF644F221AE92D /* DontBeAFK.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DontBeAFK.entitlements; sourceTree = "<group>"; };
 		3451600214E1D0BA7C291634 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		4F4F149BF3D98CEA4F8EA304 /* DontBeAFK.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DontBeAFK.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C229BAFD1C1256D7AB307649 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		C42A1B3FAE70A6EBB3E03F87 /* DontBeAFKApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DontBeAFKApp.swift; sourceTree = "<group>"; };
 		D664488FF6E1C39FAC539558 /* ScriptController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptController.swift; sourceTree = "<group>"; };
 		DA9489888C8EC0D1D270C71D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F154752861576869B5B98DC1 /* ClickOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickOverlayView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -44,6 +47,8 @@
 			isa = PBXGroup;
 			children = (
 				DA9489888C8EC0D1D270C71D /* Assets.xcassets */,
+				F154752861576869B5B98DC1 /* ClickOverlayView.swift */,
+				20257829E5FF644F221AE92D /* DontBeAFK.entitlements */,
 				C42A1B3FAE70A6EBB3E03F87 /* DontBeAFKApp.swift */,
 				3451600214E1D0BA7C291634 /* MainView.swift */,
 				C229BAFD1C1256D7AB307649 /* MenuBarView.swift */,
@@ -59,6 +64,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D5568BED5896884779361CD2 /* Build configuration list for PBXNativeTarget "DontBeAFK" */;
 			buildPhases = (
+				D5DC598B6577B26E0B176688 /* Set Version from Git Tag */,
 				FF9E7C858532CA563CA435AB /* Sources */,
 				592BC86F1184C2EA1DEA91CF /* Resources */,
 			);
@@ -80,7 +86,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 1400;
 				TargetAttributes = {
 					53D12A2FEBB407DF1759060D = {
 						ProvisioningStyle = Automatic;
@@ -97,6 +103,7 @@
 			);
 			mainGroup = 66F7DF2B1F2476EBDF52A2C0;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -116,11 +123,34 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		D5DC598B6577B26E0B176688 /* Set Version from Git Tag */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Set Version from Git Tag";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Get the latest git tag (e.g., v1.2.3 or 1.2.3)\nGIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo \"\")\n\n# Remove 'v' prefix if present\nVERSION=\"${GIT_TAG#v}\"\n\n# Default version if no tag found\nif [ -z \"$VERSION\" ]; then\n  VERSION=\"1.0.0\"\nfi\n\n# Get commit count for build number\nCOMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo \"1\")\n\n# Update build settings\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $VERSION\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $COMMIT_COUNT\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\" 2>/dev/null || true\n\necho \"Version set to: $VERSION (Build $COMMIT_COUNT)\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		FF9E7C858532CA563CA435AB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5829069D2A7AE4E704F463C3 /* ClickOverlayView.swift in Sources */,
 				00646705BF339ACE5AC66B2E /* DontBeAFKApp.swift in Sources */,
 				7F018BEFE83DE24F9EF7A218 /* MainView.swift in Sources */,
 				EA5536E0604C5A05F7EFED9A /* MenuBarView.swift in Sources */,
@@ -136,9 +166,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DontBeAFK/DontBeAFK.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEAD_CODE_STRIPPING = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DontBeAFK/Info.plist;
@@ -148,7 +179,9 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dontbeafk.app;
+				PRODUCT_NAME = "Don't Be AFK";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
 			};
@@ -159,9 +192,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DontBeAFK/DontBeAFK.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEAD_CODE_STRIPPING = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DontBeAFK/Info.plist;
@@ -171,7 +205,9 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dontbeafk.app;
+				PRODUCT_NAME = "Don't Be AFK";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
 			};
@@ -211,11 +247,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -229,7 +263,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -270,11 +303,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -295,7 +326,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;

@@ -1,5 +1,9 @@
 # Don't Be AFK
 
+<p align="left">
+  <img src="DontBeAFK/Assets.xcassets/AppIcon.appiconset/app-icon.png" alt="Don't Be AFK App Icon" width="128" height="128">
+</p>
+
 [![macOS](https://img.shields.io/badge/platform-macOS-blue.svg)](https://www.apple.com/macos/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Swift](https://img.shields.io/badge/Swift-5.0-orange.svg)](https://swift.org/)
@@ -12,7 +16,7 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 
 - ✅ **macOS Native UI** - Beautiful SwiftUI app with menu bar integration
 - ✅ **Configuration Persistence** - Saves your settings automatically
-- ✅ **Human-Readable Intervals** - Use formats like `5m`, `10m`, `1h` instead of just seconds
+- ✅ **Simple Configuration** - Set intervals in seconds
 - ✅ **Background Mode** - Run in the background as a daemon
 - ✅ **Status Checking** - Check if an instance is already running
 - ✅ **File Logging** - Optional logging to file with timestamps
@@ -35,6 +39,7 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 ### Quick Start - Download from GitHub Releases
 
 **Option 1: macOS App with UI (PKG Installer) - Recommended**
+
 1. Go to [Releases](https://github.com/YOUR_USERNAME/dont-be-afk/releases)
 2. Download `DontBeAFK-Installer-1.0.pkg`
 3. Double-click to install
@@ -42,6 +47,7 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 5. Grant accessibility permissions when prompted
 
 **Option 2: Command Line Version (CLI)**
+
 1. Go to [Releases](https://github.com/YOUR_USERNAME/dont-be-afk/releases)
 2. Download `dont-be-afk-cli-macos-1.0.0.tar.gz`
 3. Extract: `tar -xzf dont-be-afk-cli-macos-1.0.0.tar.gz`
@@ -65,10 +71,13 @@ dont-be-afk
 ### Installation Methods
 
 **Option 1: Automated Installer (Recommended)**
+
 ```bash
 ./install.sh
 ```
+
 The installer automatically:
+
 - ✅ Checks and installs Homebrew (if needed)
 - ✅ Installs cliclick dependency
 - ✅ Makes all scripts executable
@@ -98,6 +107,7 @@ The project includes a native macOS SwiftUI app for easy control:
 #### Option B: Build from Source
 
 1. **Open the project in Xcode:**
+
    ```bash
    open DontBeAFK.xcodeproj
    ```
@@ -130,6 +140,7 @@ This creates a `.pkg` installer and optionally a `.dmg` disk image. See [docs/IN
 - View logs directly from the app
 
 The UI app provides:
+
 - 🎯 **Visual Status Indicator** - See at a glance if automation is running
 - ⚙️ **Easy Configuration** - Set coordinates and interval with a friendly interface
 - 📊 **Log Viewer** - View logs without opening terminal
@@ -177,7 +188,7 @@ The script will:
 Start with specific settings:
 
 ```bash
-./dont-be-afk.sh start -x 100 -y 200 -i 5m
+./dont-be-afk.sh start -x 100 -y 200 -i 300
 ```
 
 Start in background mode with logging:
@@ -197,7 +208,7 @@ Start in background mode with logging:
 
 - `-x, --x-coord NUM` - X coordinate (default: 500)
 - `-y, --y-coord NUM` - Y coordinate (default: 300)
-- `-i, --interval TIME` - Interval in seconds or format like `5m`, `10m`, `1h` (default: 600)
+- `-i, --interval SECONDS` - Interval in seconds (default: 600)
 - `-b, --background` - Run in background mode
 - `-l, --log` - Enable logging to file (`~/.dont-be-afk.log`)
 - `-c, --config` - Show current configuration
@@ -209,13 +220,13 @@ Start in background mode with logging:
 ./dont-be-afk.sh
 
 # Start with specific coordinates and interval
-./dont-be-afk.sh start -x 100 -y 200 -i 5m
+./dont-be-afk.sh start -x 100 -y 200 -i 300
 
 # Start in background with logging
 ./dont-be-afk.sh start --background --log
 
-# Start with 30-minute interval
-./dont-be-afk.sh start -i 30m
+# Start with 30-minute interval (1800 seconds)
+./dont-be-afk.sh start -i 1800
 
 # Check if instance is running
 ./dont-be-afk.sh status
@@ -227,21 +238,14 @@ Start in background mode with logging:
 ./dont-be-afk.sh --config
 ```
 
-## Interval Formats
+## Interval Format
 
-You can specify intervals in multiple formats:
+Intervals are specified in seconds only. Examples:
 
-- **Seconds**: `300`, `600`, `1800`
-- **Minutes**: `5m`, `10m`, `30m`
-- **Hours**: `1h`, `2h`
-- **Days**: `1d` (not recommended for this use case!)
-
-Examples:
-
-- `5m` = 5 minutes = 300 seconds
-- `10m` = 10 minutes = 600 seconds
-- `1h` = 1 hour = 3600 seconds
-- `30m` = 30 minutes = 1800 seconds
+- `300` = 5 minutes
+- `600` = 10 minutes (default)
+- `1800` = 30 minutes
+- `3600` = 1 hour
 
 ## Configuration
 
@@ -294,7 +298,7 @@ Logs are written to `~/.dont-be-afk.log` with timestamps:
 ```
 [2026-01-26 10:30:45] 🚀 Starting automation
 [2026-01-26 10:30:45] 📍 Coordinates: (500, 300)
-[2026-01-26 10:30:45] ⏰ Interval: 10m (600 seconds)
+[2026-01-26 10:30:45] ⏰ Interval: 600 seconds
 [2026-01-26 10:40:45] ✅ Click #1 at (500, 300)
 [2026-01-26 10:50:45] ✅ Click #2 at (500, 300)
 ```
@@ -385,6 +389,7 @@ dont-be-afk/
 Contributions are welcome! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
 Before contributing:
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)

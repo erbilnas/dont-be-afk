@@ -7,24 +7,40 @@
 
 import Foundation
 import Combine
+import AppKit
+import CoreGraphics
+import Darwin
 
 class ScriptController: ObservableObject {
     @Published var isRunning = false
     @Published var statusMessage = "Not running"
     @Published var xCoord: Int = 500
     @Published var yCoord: Int = 300
-    @Published var interval: String = "10m"
+    @Published var interval: String = "600"
     @Published var logToFile = false
     @Published var pid: Int?
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var showError = false
     
-    private let scriptPath: String
-    private let configFile = "\(NSHomeDirectory())/.dont-be-afk-config"
-    private let pidFile = "\(NSHomeDirectory())/.dont-be-afk.pid"
-    private let logFile = "\(NSHomeDirectory())/.dont-be-afk.log"
+    private var _scriptPath: String?
+    private let configFile: String
+    private let pidFile: String
+    private let logFile: String
     private var statusTimer: Timer?
+    private var clickMonitorTimer: Timer?
+    private var lastLogSize: UInt64 = 0
+    private var overlayUpdatePending = false
+    
+    // Lazily compute script path to avoid blocking during init
+    private var scriptPath: String {
+        if let path = _scriptPath {
+            return path
+        }
+        let path = findScriptPath()
+        _scriptPath = path
+        return path
+    }
     
     // Expose script path for debugging
     var scriptPathForDebugging: String {
@@ -32,6 +48,134 @@ class ScriptController: ObservableObject {
     }
     
     init() {
+        // Use Application Support directory to avoid permission prompts
+        // This is the proper location for app data on macOS
+        let appSupportDir = Self.getAppSupportDirectory()
+        self.configFile = "\(appSupportDir)/config"
+        self.pidFile = "\(appSupportDir)/pid"
+        self.logFile = "\(appSupportDir)/log"
+        
+        // Load config synchronously - it's a small file read
+        loadConfigSync()
+        
+        // Schedule delayed initialization on a strong reference
+        // Using Timer instead of DispatchQueue to ensure the object stays alive
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
+            self?.delayedInit()
+        }
+    }
+    
+    /// Get or create the Application Support directory for this app
+    private static func getAppSupportDirectory() -> String {
+        let fileManager = FileManager.default
+        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appDir = appSupport.appendingPathComponent("DontBeAFK")
+        
+        // Create directory if it doesn't exist
+        if !fileManager.fileExists(atPath: appDir.path) {
+            try? fileManager.createDirectory(at: appDir, withIntermediateDirectories: true)
+        }
+        
+        return appDir.path
+    }
+    
+    private func loadConfigSync() {
+        guard FileManager.default.fileExists(atPath: configFile) else { return }
+        
+        do {
+            let content = try String(contentsOfFile: configFile, encoding: .utf8)
+            let lines = content.components(separatedBy: "\n")
+            
+            for line in lines {
+                let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                if trimmedLine.hasPrefix("x_coord=") {
+                    let valueStr = String(trimmedLine.dropFirst("x_coord=".count))
+                    if let x = Int(valueStr) { xCoord = x }
+                } else if trimmedLine.hasPrefix("y_coord=") {
+                    let valueStr = String(trimmedLine.dropFirst("y_coord=".count))
+                    if let y = Int(valueStr) { yCoord = y }
+                } else if trimmedLine.hasPrefix("interval=") {
+                    let valueStr = String(trimmedLine.dropFirst("interval=".count))
+                    if let seconds = Int(valueStr) {
+                        interval = String(seconds)
+                    }
+                } else if trimmedLine.hasPrefix("log_to_file=") {
+                    logToFile = trimmedLine.contains("true")
+                }
+            }
+        } catch {
+            // Silently ignore errors - use default values
+        }
+    }
+    
+    private func delayedInit() {
+        // Stop any existing processes for a clean slate on app open
+        stopExistingProcesses()
+        
+        // Check status
+        checkStatus()
+        
+        // Set up timer to periodically check status
+        let timer = Timer(timeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.checkStatus()
+        }
+        RunLoop.main.add(timer, forMode: .default)
+        self.statusTimer = timer
+    }
+    
+    /// Stop any existing processes on app startup for a clean slate
+    private func stopExistingProcesses() {
+        let pidFilePath = self.pidFile
+        
+        // Check if PID file exists
+        guard FileManager.default.fileExists(atPath: pidFilePath) else { return }
+        
+        // Read PID and kill the process if running
+        do {
+            let pidString = try String(contentsOfFile: pidFilePath, encoding: .utf8)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if let pid = Int(pidString) {
+                // Check if process is actually running
+                let result = kill(pid_t(pid), 0)
+                if result == 0 || errno == EPERM {
+                    // Process is running, kill it
+                    kill(pid_t(pid), SIGTERM)
+                }
+            }
+            // Remove the PID file
+            try? FileManager.default.removeItem(atPath: pidFilePath)
+        } catch {
+            // Silently ignore errors - just ensure PID file is removed
+            try? FileManager.default.removeItem(atPath: pidFilePath)
+        }
+        
+        // Ensure UI shows not running
+        DispatchQueue.main.async { [weak self] in
+            self?.isRunning = false
+            self?.statusMessage = "Not running"
+            self?.pid = nil
+            self?.hideClickOverlay()
+            self?.stopClickMonitoring()
+        }
+    }
+    
+    /// Call this when coordinates change to update the overlay (if running)
+    func updateOverlayIfNeeded() {
+        guard isRunning, !overlayUpdatePending else { return }
+        overlayUpdatePending = true
+        
+        // Debounce overlay updates
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self, self.isRunning else {
+                self?.overlayUpdatePending = false
+                return
+            }
+            self.overlayUpdatePending = false
+            OverlayWindowManager.shared.updateClickLocation(x: self.xCoord, y: self.yCoord)
+        }
+    }
+    
+    private func findScriptPath() -> String {
         // Find the script path - try multiple locations
         let bundlePath = Bundle.main.bundlePath
         var possiblePaths: [String] = []
@@ -48,36 +192,57 @@ class ScriptController: ObservableObject {
         possiblePaths.append("\(currentDir)/bin/dont-be-afk")
         possiblePaths.append("\(currentDir)/../bin/dont-be-afk")
         
-        // Try using which to find it
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/which")
-        task.arguments = ["dont-be-afk"]
-        let pipe = Pipe()
-        task.standardOutput = pipe
-        try? task.run()
-        task.waitUntilExit()
-        if task.terminationStatus == 0,
-           let data = try? pipe.fileHandleForReading.readToEnd(),
-           let path = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !path.isEmpty {
-            possiblePaths.insert(path, at: 0)
+        // Standard install locations
+        possiblePaths.append("/usr/local/bin/dont-be-afk")
+        possiblePaths.append("/opt/homebrew/bin/dont-be-afk")
+        
+        // Try using which to find it - run on background thread to avoid blocking
+        // Note: This is called lazily, not during init, so it's safe to do synchronously
+        // when the script path is first needed (e.g., when user clicks Start)
+        let whichPath = findScriptViaWhich()
+        if let whichPath = whichPath {
+            possiblePaths.insert(whichPath, at: 0)
         }
         
         // Use the first path that exists
-        scriptPath = possiblePaths.first { FileManager.default.fileExists(atPath: $0) } ?? possiblePaths.first ?? "/usr/local/bin/dont-be-afk"
+        return possiblePaths.first { FileManager.default.fileExists(atPath: $0) } ?? "/usr/local/bin/dont-be-afk"
+    }
+    
+    private func findScriptViaWhich() -> String? {
+        // Run 'which' command to find the script in PATH
+        // This is safe to call synchronously because it's only called lazily
+        // when the user first interacts with start/stop, not during app init
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+        task.arguments = ["dont-be-afk"]
         
-        // Load configuration
-        loadConfig()
-        checkStatus()
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = Pipe() // Use a new Pipe instead of nullDevice to avoid shared object issues
         
-        // Set up timer to periodically check status
-        statusTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.checkStatus()
+        do {
+            try task.run()
+            task.waitUntilExit()
+            
+            if task.terminationStatus == 0 {
+                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                if let path = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   !path.isEmpty {
+                    return path
+                }
+            }
+        } catch {
+            // Ignore errors - we'll fall back to other paths
         }
+        
+        return nil
     }
     
     deinit {
+        // Only invalidate timer - don't modify any @Published properties in deinit
+        // as this can cause crashes with SwiftUI's observation system
         statusTimer?.invalidate()
+        clickMonitorTimer?.invalidate()
     }
     
     private func showError(_ message: String) {
@@ -95,19 +260,21 @@ class ScriptController: ObservableObject {
             return false
         }
         
-        // Validate interval format (should be like "10m", "5s", "1h", or just a number)
+        // Validate interval format (should be a number representing seconds)
         let trimmedInterval = interval.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmedInterval.isEmpty {
             showError("Interval cannot be empty")
             return false
         }
         
-        // Check if it's a valid format (number followed by optional s/m/h, or just a number)
-        let intervalPattern = #"^\d+[smh]?$"#
-        let regex = try? NSRegularExpression(pattern: intervalPattern, options: .caseInsensitive)
-        let range = NSRange(location: 0, length: trimmedInterval.utf16.count)
-        if regex?.firstMatch(in: trimmedInterval, options: [], range: range) == nil {
-            showError("Invalid interval format. Use formats like: 10m, 5s, 1h, or 600")
+        // Check if it's a valid number (seconds only)
+        if let seconds = Int(trimmedInterval) {
+            if seconds < 1 {
+                showError("Interval must be at least 1 second")
+                return false
+            }
+        } else {
+            showError("Invalid interval format. Please enter a number (seconds only, e.g., 300, 600)")
             return false
         }
         
@@ -118,29 +285,28 @@ class ScriptController: ObservableObject {
         guard FileManager.default.fileExists(atPath: configFile) else { return }
         
         do {
-            let content = try String(contentsOfFile: configFile)
-            let lines = content.components(separatedBy: .newlines)
+            let content = try String(contentsOfFile: configFile, encoding: .utf8)
+            let lines = content.components(separatedBy: "\n")
             
             for line in lines {
-                if line.hasPrefix("x_coord=") {
-                    if let value = Int(line.replacingOccurrences(of: "x_coord=", with: "")) {
-                        xCoord = value
+                let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                if trimmedLine.hasPrefix("x_coord=") {
+                    let valueStr = String(trimmedLine.dropFirst("x_coord=".count))
+                    if let x = Int(valueStr) { xCoord = x }
+                } else if trimmedLine.hasPrefix("y_coord=") {
+                    let valueStr = String(trimmedLine.dropFirst("y_coord=".count))
+                    if let y = Int(valueStr) { yCoord = y }
+                } else if trimmedLine.hasPrefix("interval=") {
+                    let valueStr = String(trimmedLine.dropFirst("interval=".count))
+                    if let seconds = Int(valueStr) {
+                        interval = String(seconds)
                     }
-                } else if line.hasPrefix("y_coord=") {
-                    if let value = Int(line.replacingOccurrences(of: "y_coord=", with: "")) {
-                        yCoord = value
-                    }
-                } else if line.hasPrefix("interval=") {
-                    let value = line.replacingOccurrences(of: "interval=", with: "")
-                    if let seconds = Int(value) {
-                        interval = formatInterval(seconds: seconds)
-                    }
-                } else if line.hasPrefix("log_to_file=") {
-                    logToFile = line.contains("true")
+                } else if trimmedLine.hasPrefix("log_to_file=") {
+                    logToFile = trimmedLine.contains("true")
                 }
             }
         } catch {
-            print("Error loading config: \(error)")
+            // Silently ignore errors - use default values
         }
     }
     
@@ -148,70 +314,84 @@ class ScriptController: ObservableObject {
         // Don't check status while loading to avoid race conditions
         guard !isLoading else { return }
         
-        guard FileManager.default.fileExists(atPath: pidFile) else {
-            DispatchQueue.main.async {
-                self.isRunning = false
-                if !self.isLoading {
-                    self.statusMessage = "Not running"
-                }
-                self.pid = nil
+        // Capture the pidFile path to avoid accessing self in background
+        let pidFilePath = self.pidFile
+        
+        // Check file existence on main thread to avoid threading issues
+        let fileExists = FileManager.default.fileExists(atPath: pidFilePath)
+        
+        guard fileExists else {
+            // Update directly on main thread
+            self.isRunning = false
+            if !self.isLoading {
+                self.statusMessage = "Not running"
             }
+            self.pid = nil
             return
         }
         
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            guard let self = self else { return }
-            
+        // Read file content on main thread to avoid complex threading
+        // File is small (just a PID), so this is fast
+        var pidValue: Int?
+        var isProcessRunning = false
+        var errorOccurred = false
+        var errorMessage = ""
+        
+        autoreleasepool {
             do {
-                let pidString = try String(contentsOfFile: self.pidFile).trimmingCharacters(in: .whitespacesAndNewlines)
-                if let pidValue = Int(pidString) {
-                    // Check if process is actually running
-                    let task = Process()
-                    task.executableURL = URL(fileURLWithPath: "/bin/ps")
-                    task.arguments = ["-p", String(pidValue)]
-                    
-                    let pipe = Pipe()
-                    task.standardOutput = pipe
-                    task.standardError = pipe
-                    
-                    try task.run()
-                    task.waitUntilExit()
-                    
-                    DispatchQueue.main.async {
-                        if task.terminationStatus == 0 {
-                            self.isRunning = true
-                            if !self.isLoading {
-                                self.statusMessage = "Running (PID: \(pidValue))"
-                            }
-                            self.pid = pidValue
-                        } else {
-                            self.isRunning = false
-                            if !self.isLoading {
-                                self.statusMessage = "Not running (stale PID file)"
-                            }
-                            // Clean up stale PID file
-                            try? FileManager.default.removeItem(atPath: self.pidFile)
-                            self.pid = nil
-                        }
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self.isRunning = false
-                        if !self.isLoading {
-                            self.statusMessage = "Invalid PID file"
-                        }
-                        self.pid = nil
-                    }
+                let pidString = try String(contentsOfFile: pidFilePath, encoding: .utf8)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                if let pid = Int(pidString) {
+                    pidValue = pid
+                    // Check if process is actually running using kill -0
+                    let result = kill(pid_t(pid), 0)
+                    isProcessRunning = (result == 0 || errno == EPERM)
                 }
             } catch {
-                DispatchQueue.main.async {
-                    self.isRunning = false
-                    if !self.isLoading {
-                        self.statusMessage = "Error checking status: \(error.localizedDescription)"
-                    }
-                    self.pid = nil
-                }
+                errorOccurred = true
+                errorMessage = error.localizedDescription
             }
+        }
+        
+        // Update state
+        if errorOccurred {
+            self.isRunning = false
+            if !self.isLoading {
+                self.statusMessage = "Error checking status: \(errorMessage)"
+            }
+            self.pid = nil
+        } else if let pidValue = pidValue {
+            if isProcessRunning {
+                self.isRunning = true
+                if !self.isLoading {
+                    self.statusMessage = "Running (PID: \(pidValue))"
+                }
+                self.pid = pidValue
+                // Show overlay when running
+                self.showClickOverlay()
+                // Start monitoring clicks
+                self.startClickMonitoring()
+            } else {
+                self.isRunning = false
+                if !self.isLoading {
+                    self.statusMessage = "Not running (stale PID file)"
+                }
+                // Clean up stale PID file
+                try? FileManager.default.removeItem(atPath: pidFilePath)
+                self.pid = nil
+                // Hide overlay when stopped
+                self.hideClickOverlay()
+                self.stopClickMonitoring()
+            }
+        } else {
+            self.isRunning = false
+            if !self.isLoading {
+                self.statusMessage = "Invalid PID file"
+            }
+            self.pid = nil
+            // Hide overlay
+            self.hideClickOverlay()
+            self.stopClickMonitoring()
         }
     }
     
@@ -241,106 +421,128 @@ class ScriptController: ObservableObject {
         isLoading = true
         statusMessage = "Starting..."
         
+        // Capture values needed for the background task
+        let scriptPathCopy = scriptPath
+        let xCoordCopy = xCoord
+        let yCoordCopy = yCoord
+        let intervalCopy = interval.trimmingCharacters(in: .whitespacesAndNewlines)
+        let logToFileCopy = logToFile
+        let pidFilePath = pidFile
+        let logFilePath = logFile
+        
         // Run asynchronously to avoid blocking UI
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
+            // Capture results before dispatching to main thread
+            var success = false
+            var errorOutput = ""
+            var terminationCode: Int32 = 0
             
-            let task = Process()
-            task.executableURL = URL(fileURLWithPath: "/bin/bash")
-            
-            var args = [
-                scriptPath,
-                "start",
-                "-x", String(self.xCoord),
-                "-y", String(self.yCoord),
-                "-i", self.interval.trimmingCharacters(in: .whitespacesAndNewlines),
-                "--background"
-            ]
-            
-            if self.logToFile {
-                args.append("--log")
-            }
-            
-            task.arguments = args
-            
-            // Capture stdout and stderr
-            let stdoutPipe = Pipe()
-            let stderrPipe = Pipe()
-            let stdinPipe = Pipe()
-            task.standardOutput = stdoutPipe
-            task.standardError = stderrPipe
-            task.standardInput = stdinPipe
-            
-            // Write "y\n" to stdin before starting to auto-confirm any prompts
-            // This handles the coordinate validation warning prompt that appears during script execution
-            let confirmInput = "y\n"
-            if let inputData = confirmInput.data(using: .utf8) {
-                stdinPipe.fileHandleForWriting.write(inputData)
-                // Don't close yet - keep it open in case more input is needed
-            }
-            
-            do {
-                try task.run()
+            autoreleasepool {
+                let task = Process()
+                task.executableURL = URL(fileURLWithPath: "/bin/bash")
                 
-                // Close stdin after a brief delay to ensure the input is processed
-                DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
-                    stdinPipe.fileHandleForWriting.closeFile()
+                var args = [
+                    scriptPathCopy,
+                    "start",
+                    "-x", String(xCoordCopy),
+                    "-y", String(yCoordCopy),
+                    "-i", intervalCopy,
+                    "--background"
+                ]
+                
+                if logToFileCopy {
+                    args.append("--log")
                 }
                 
-                // Read output asynchronously
-                let stdoutHandle = stdoutPipe.fileHandleForReading
-                let stderrHandle = stderrPipe.fileHandleForReading
+                task.arguments = args
                 
-                var stdoutData = Data()
-                var stderrData = Data()
+                // Capture stdout and stderr
+                let stdoutPipe = Pipe()
+                let stderrPipe = Pipe()
+                let stdinPipe = Pipe()
+                task.standardOutput = stdoutPipe
+                task.standardError = stderrPipe
+                task.standardInput = stdinPipe
                 
-                stdoutHandle.readabilityHandler = { handle in
-                    let data = handle.availableData
-                    if !data.isEmpty {
-                        stdoutData.append(data)
-                    }
+                // Write "y\n" to stdin before starting to auto-confirm any prompts
+                let confirmInput = "y\n"
+                if let inputData = confirmInput.data(using: .utf8) {
+                    stdinPipe.fileHandleForWriting.write(inputData)
+                    try? stdinPipe.fileHandleForWriting.close()
                 }
                 
-                stderrHandle.readabilityHandler = { handle in
-                    let data = handle.availableData
-                    if !data.isEmpty {
-                        stderrData.append(data)
-                    }
-                }
-                
-                task.waitUntilExit()
-                
-                // Stop reading
-                stdoutHandle.readabilityHandler = nil
-                stderrHandle.readabilityHandler = nil
-                
-                let terminationStatus = task.terminationStatus
-                let stdoutString = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                let stderrString = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                
-                DispatchQueue.main.async {
-                    self.isLoading = false
+                do {
+                    try task.run()
+                    task.waitUntilExit()
                     
-                    if terminationStatus != 0 {
-                        let errorMsg = !stderrString.isEmpty ? stderrString : stdoutString
-                        let fullError = !errorMsg.isEmpty ? errorMsg : "Script exited with code \(terminationStatus)"
-                        self.showError("Failed to start script:\n\(fullError)")
-                    } else {
-                        // Success - check status after a short delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            self.checkStatus()
-                            if self.isRunning {
-                                self.statusMessage = "Started successfully"
+                    terminationCode = task.terminationStatus
+                    success = (terminationCode == 0)
+                    
+                    if !success {
+                        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+                        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+                        let stderrString = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                        let stdoutString = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                        errorOutput = !stderrString.isEmpty ? stderrString : stdoutString
+                    }
+                } catch {
+                    errorOutput = error.localizedDescription
+                }
+            }
+            
+            // Dispatch to main thread with captured values
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                self.isLoading = false
+                
+                if !success {
+                    let fullError = !errorOutput.isEmpty ? errorOutput : "Script exited with code \(terminationCode)"
+                    self.showError("Failed to start script:\n\(fullError)")
+                } else {
+                    // Success - check status after a short delay to allow PID file to be created
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                        guard let self = self else { return }
+                        
+                        self.checkStatus()
+                        if self.isRunning {
+                            self.statusMessage = "Started successfully"
+                            // Show overlay immediately when started
+                            self.showClickOverlay()
+                            self.startClickMonitoring()
+                        } else {
+                            // Provide more detailed error information
+                            var errorDetails = "Script started but process not found.\n\n"
+                            
+                            // Check if PID file exists
+                            if FileManager.default.fileExists(atPath: pidFilePath) {
+                                if let pidContent = try? String(contentsOfFile: pidFilePath).trimmingCharacters(in: .whitespacesAndNewlines),
+                                   let pidValue = Int(pidContent) {
+                                    errorDetails += "PID file exists with PID: \(pidValue)\n"
+                                    errorDetails += "But process is not running.\n\n"
+                                } else {
+                                    errorDetails += "PID file exists but contains invalid data.\n\n"
+                                }
                             } else {
-                                self.showError("Script started but process not found. Check logs for details.")
+                                errorDetails += "PID file not found at: \(pidFilePath)\n"
+                                errorDetails += "The background process may have failed to start.\n\n"
                             }
+                            
+                            // Check logs if available
+                            if FileManager.default.fileExists(atPath: logFilePath) {
+                                if let logContent = try? String(contentsOfFile: logFilePath) {
+                                    let lastLines = logContent.components(separatedBy: .newlines).suffix(5).joined(separator: "\n")
+                                    if !lastLines.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                        errorDetails += "Last log entries:\n\(lastLines)"
+                                    }
+                                }
+                            } else {
+                                errorDetails += "No log file found. Try enabling logging."
+                            }
+                            
+                            self.showError(errorDetails)
                         }
                     }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    self.showError("Failed to start script: \(error.localizedDescription)\n\nError details: \(error)")
                 }
             }
         }
@@ -361,89 +563,104 @@ class ScriptController: ObservableObject {
         isLoading = true
         statusMessage = "Stopping..."
         
+        // Capture values needed for the background task
+        let scriptPathCopy = scriptPath
+        
         // Run asynchronously
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
+            // Capture results before dispatching to main thread
+            var success = false
+            var errorOutput = ""
+            var terminationCode: Int32 = 0
             
-            let task = Process()
-            task.executableURL = URL(fileURLWithPath: "/bin/bash")
-            task.arguments = [self.scriptPath, "stop"]
-            
-            // Capture output
-            let stdoutPipe = Pipe()
-            let stderrPipe = Pipe()
-            let stdinPipe = Pipe()
-            task.standardOutput = stdoutPipe
-            task.standardError = stderrPipe
-            task.standardInput = stdinPipe
-            
-            // Write "y\n" to stdin before starting to auto-confirm any prompts
-            let confirmInput = "y\n"
-            if let inputData = confirmInput.data(using: .utf8) {
-                stdinPipe.fileHandleForWriting.write(inputData)
+            autoreleasepool {
+                let task = Process()
+                task.executableURL = URL(fileURLWithPath: "/bin/bash")
+                task.arguments = [scriptPathCopy, "stop"]
+                
+                // Capture output
+                let stdoutPipe = Pipe()
+                let stderrPipe = Pipe()
+                let stdinPipe = Pipe()
+                task.standardOutput = stdoutPipe
+                task.standardError = stderrPipe
+                task.standardInput = stdinPipe
+                
+                // Write "y\n" to stdin before starting to auto-confirm any prompts
+                let confirmInput = "y\n"
+                if let inputData = confirmInput.data(using: .utf8) {
+                    stdinPipe.fileHandleForWriting.write(inputData)
+                    try? stdinPipe.fileHandleForWriting.close()
+                }
+                
+                do {
+                    try task.run()
+                    task.waitUntilExit()
+                    
+                    terminationCode = task.terminationStatus
+                    success = (terminationCode == 0)
+                    
+                    if !success {
+                        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+                        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+                        let stderrString = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                        let stdoutString = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                        errorOutput = !stderrString.isEmpty ? stderrString : stdoutString
+                    }
+                } catch {
+                    errorOutput = error.localizedDescription
+                }
             }
             
-            do {
-                try task.run()
+            // Dispatch to main thread with captured values
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 
-                // Close stdin after a brief delay
-                DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
-                    stdinPipe.fileHandleForWriting.closeFile()
-                }
+                self.isLoading = false
                 
-                let stdoutHandle = stdoutPipe.fileHandleForReading
-                let stderrHandle = stderrPipe.fileHandleForReading
-                
-                var stdoutData = Data()
-                var stderrData = Data()
-                
-                stdoutHandle.readabilityHandler = { handle in
-                    let data = handle.availableData
-                    if !data.isEmpty {
-                        stdoutData.append(data)
-                    }
-                }
-                
-                stderrHandle.readabilityHandler = { handle in
-                    let data = handle.availableData
-                    if !data.isEmpty {
-                        stderrData.append(data)
-                    }
-                }
-                
-                task.waitUntilExit()
-                
-                stdoutHandle.readabilityHandler = nil
-                stderrHandle.readabilityHandler = nil
-                
-                let terminationStatus = task.terminationStatus
-                let stdoutString = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                let stderrString = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    
-                    if terminationStatus != 0 {
-                        let errorMsg = !stderrString.isEmpty ? stderrString : stdoutString
-                        let fullError = !errorMsg.isEmpty ? errorMsg : "Script exited with code \(terminationStatus)"
-                        self.showError("Failed to stop script:\n\(fullError)")
-                    } else {
-                        // Success - check status after a short delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            self.checkStatus()
-                            if !self.isRunning {
-                                self.statusMessage = "Stopped successfully"
-                            }
+                if !success {
+                    let fullError = !errorOutput.isEmpty ? errorOutput : "Script exited with code \(terminationCode)"
+                    self.showError("Failed to stop script:\n\(fullError)")
+                } else {
+                    // Success - check status after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                        guard let self = self else { return }
+                        
+                        self.checkStatus()
+                        if !self.isRunning {
+                            self.statusMessage = "Stopped successfully"
+                            // Hide overlay when stopped
+                            self.hideClickOverlay()
+                            self.stopClickMonitoring()
                         }
                     }
                 }
-            } catch {
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    self.showError("Failed to stop script: \(error.localizedDescription)")
-                }
             }
         }
+    }
+    
+    private func showClickOverlay() {
+        // Overlay feature disabled - it causes app termination due to
+        // conflicts with SwiftUI's window management system.
+        // The core functionality (auto-clicking) works without the overlay.
+    }
+    
+    private func hideClickOverlay() {
+        // Overlay feature disabled
+    }
+    
+    private func startClickMonitoring() {
+        // Click monitoring disabled - overlay feature is disabled
+    }
+    
+    private func stopClickMonitoring() {
+        clickMonitorTimer?.invalidate()
+        clickMonitorTimer = nil
+        lastLogSize = 0
+    }
+    
+    private func checkForClicks() {
+        // Click monitoring disabled - overlay feature is disabled
     }
     
     func getLogs() -> String {
@@ -455,21 +672,6 @@ class ScriptController: ObservableObject {
             return try String(contentsOfFile: logFile)
         } catch {
             return "Error reading log: \(error.localizedDescription)"
-        }
-    }
-    
-    // Helper function for interval formatting
-    private func formatInterval(seconds: Int) -> String {
-        let hours = seconds / 3600
-        let minutes = (seconds % 3600) / 60
-        let secs = seconds % 60
-        
-        if hours > 0 {
-            return "\(hours)h"
-        } else if minutes > 0 {
-            return "\(minutes)m"
-        } else {
-            return "\(secs)s"
         }
     }
 }

@@ -38,3 +38,23 @@ validate_coordinates() {
     fi
     return 0
 }
+
+# Function to warn if interval exceeds Mac lock time
+warn_if_interval_exceeds_lock_time() {
+    local interval=$1
+    local lock_time=$(get_mac_lock_time)
+    
+    # If lock time is 0, password is not required, so no warning needed
+    if [[ "$lock_time" -eq 0 ]]; then
+        return 0
+    fi
+    
+    # If interval exceeds lock time, warn the user
+    if [[ "$interval" -gt "$lock_time" ]]; then
+        echo ""
+        echo "⚠️  Warning: Your interval ($interval seconds) is longer than your Mac's lock time ($lock_time seconds)"
+        echo "   Your Mac may lock before the next click, which could prevent the script from working."
+        echo "   Consider setting a shorter interval or adjusting your Mac's lock settings."
+        echo ""
+    fi
+}

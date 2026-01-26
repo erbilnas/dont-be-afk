@@ -3,7 +3,13 @@
 # Process Management Module
 # Handles process lifecycle (start, stop, status)
 
-PID_FILE="$HOME/.dont-be-afk.pid"
+# Use Application Support directory to avoid permission prompts on macOS
+APP_SUPPORT_DIR="$HOME/Library/Application Support/DontBeAFK"
+
+# Create directory if it doesn't exist
+mkdir -p "$APP_SUPPORT_DIR" 2>/dev/null
+
+PID_FILE="$APP_SUPPORT_DIR/pid"
 
 # Function to check if another instance is running
 check_running() {

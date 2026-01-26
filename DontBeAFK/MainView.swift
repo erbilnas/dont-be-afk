@@ -8,100 +8,177 @@
 import SwiftUI
 import AppKit
 
+// Section style modifier for Apple-like sections
+struct SectionStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(20)
+            .background {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.regularMaterial)
+            }
+    }
+}
+
+extension View {
+    func sectionStyle() -> some View {
+        modifier(SectionStyle())
+    }
+}
+
 struct MainView: View {
     @EnvironmentObject var controller: ScriptController
     @State private var showingLogs = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Header
-            VStack(spacing: 8) {
-                Image(systemName: "cursorarrow.click")
-                    .font(.system(size: 48))
-                    .foregroundColor(.blue)
-                
-                Text("Don't Be AFK")
-                    .font(.title)
-                    .fontWeight(.bold)
-            }
-            .padding(.top, 20)
-            
-            // Status Section
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Status")
-                    .font(.headline)
-                
-                HStack {
-                    if controller.isLoading {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                            .frame(width: 12, height: 12)
-                    } else {
-                        Circle()
-                            .fill(controller.isRunning ? Color.green : Color.red)
-                            .frame(width: 12, height: 12)
-                    }
+        ScrollView {
+            VStack(spacing: 32) {
+                // Header
+                VStack(spacing: 12) {
+                    Image(systemName: "cursorarrow.click")
+                        .font(.system(size: 48, weight: .light))
+                        .foregroundColor(.primary)
+                        .symbolRenderingMode(.hierarchical)
                     
-                    Text(controller.statusMessage)
-                        .font(.body)
+                    VStack(spacing: 4) {
+                        Text("Don't Be AFK")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundColor(.primary)
+                        
+                        Text("Keep your Mac active automatically")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
                 }
+                .padding(.top, 40)
                 
-                if let pid = controller.pid {
-                    Text("Process ID: \(pid)")
-                        .font(.caption)
+                // Status Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Label("Status", systemImage: "circle.fill")
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.secondary)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
-            
-            // Configuration Section
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Configuration")
-                    .font(.headline)
-                
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("X Coordinate")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        TextField("X", value: $controller.xCoord, format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                    }
+                        .textCase(.uppercase)
+                        .tracking(0.5)
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Y Coordinate")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        TextField("Y", value: $controller.yCoord, format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Interval")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        TextField("10m", text: $controller.interval)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
+                    HStack(spacing: 12) {
+                        if controller.isLoading {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Circle()
+                                .fill(controller.isRunning ? Color.green : Color.red)
+                                .frame(width: 10, height: 10)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(controller.statusMessage)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.primary)
+                            
+                            if let pid = controller.pid {
+                                Text("Process ID: \(pid)")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Spacer()
                     }
                 }
+                .sectionStyle()
                 
-                Toggle("Log to file", isOn: $controller.logToFile)
-                    .font(.body)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
-            
-            // Controls
-            VStack(spacing: 8) {
-                HStack(spacing: 12) {
+                // Configuration Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Label("Configuration", systemImage: "gearshape")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Coordinates
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Click Location")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                            
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("X")
+                                        .font(.system(size: 10, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                    TextField("X", value: $controller.xCoord, format: .number)
+                                        .textFieldStyle(.plain)
+                                        .padding(10)
+                                        .background(Color(NSColor.textBackgroundColor))
+                                        .cornerRadius(6)
+                                        .font(.system(size: 13))
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Y")
+                                        .font(.system(size: 10, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                    TextField("Y", value: $controller.yCoord, format: .number)
+                                        .textFieldStyle(.plain)
+                                        .padding(10)
+                                        .background(Color(NSColor.textBackgroundColor))
+                                        .cornerRadius(6)
+                                        .font(.system(size: 13))
+                                }
+                            }
+                            
+                            Text("Screen coordinates for automatic click")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        // Interval
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 4) {
+                                Text("Interval")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(.secondary)
+                                Text("(seconds)")
+                                    .font(.system(size: 10, weight: .regular))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            TextField("Seconds", text: $controller.interval)
+                                .textFieldStyle(.plain)
+                                .padding(10)
+                                .background(Color(NSColor.textBackgroundColor))
+                                .cornerRadius(6)
+                                .font(.system(size: 13))
+                            
+                            Text("Click frequency (e.g., 15, 30, 60)")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    HStack(spacing: 12) {
+                        Toggle("", isOn: $controller.logToFile)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Log to file")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.primary)
+                            Text("Save activity logs to disk")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.top, 4)
+                }
+                .sectionStyle()
+                
+                // Controls
+                VStack(spacing: 12) {
                     Button(action: {
                         if controller.isRunning {
                             controller.stop()
@@ -109,66 +186,111 @@ struct MainView: View {
                             controller.start()
                         }
                     }) {
-                        HStack {
+                        HStack(spacing: 8) {
                             if controller.isLoading {
                                 ProgressView()
                                     .scaleEffect(0.7)
-                                    .frame(width: 16, height: 16)
+                                    .frame(width: 14, height: 14)
                             } else {
                                 Image(systemName: controller.isRunning ? "stop.fill" : "play.fill")
+                                    .font(.system(size: 13, weight: .semibold))
                             }
                             Text(controller.isLoading ? (controller.isRunning ? "Stopping..." : "Starting...") : (controller.isRunning ? "Stop" : "Start"))
+                                .font(.system(size: 13, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 10)
+                        .background(controller.isRunning ? Color.red : Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(6)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+                    .buttonStyle(.plain)
                     .disabled(controller.isLoading || controller.xCoord < 0 || controller.yCoord < 0)
+                    .opacity((controller.isLoading || controller.xCoord < 0 || controller.yCoord < 0) ? 0.5 : 1.0)
                     
                     Button(action: {
                         showingLogs.toggle()
                     }) {
-                        HStack {
+                        HStack(spacing: 8) {
                             Image(systemName: "doc.text")
+                                .font(.system(size: 12, weight: .medium))
                             Text("View Logs")
+                                .font(.system(size: 13, weight: .medium))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 10)
+                        .background(.regularMaterial)
+                        .foregroundColor(.primary)
+                        .cornerRadius(6)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+                    .buttonStyle(.plain)
                     .disabled(controller.isLoading)
-                }
-                
-                // Validation feedback
-                if !controller.isLoading && !controller.isRunning && (controller.xCoord < 0 || controller.yCoord < 0) {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
-                            .font(.caption)
-                        Text("Please enter valid coordinates (≥ 0)")
-                            .font(.caption)
-                            .foregroundColor(.orange)
+                    .opacity(controller.isLoading ? 0.5 : 1.0)
+                    
+                    // Validation feedback
+                    if !controller.isLoading && !controller.isRunning && (controller.xCoord < 0 || controller.yCoord < 0) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.orange)
+                            Text("Please enter valid coordinates (≥ 0)")
+                                .font(.system(size: 11))
+                                .foregroundColor(.orange)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 4)
                 }
-            }
                 
-            
-            Spacer()
-            
-            // Help text
-            Text("The script will automatically click at the specified coordinates to prevent your Mac from going idle.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-                .padding(.bottom, 20)
+                // Help text
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                        Text("How to use:")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("•")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            Text("Set coordinates: Enter X and Y screen coordinates where automatic clicks will occur. Choose a safe spot like an empty area or corner to avoid accidental clicks on applications.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("•")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            Text("Choose interval: Recommended 15-60 seconds. Shorter intervals keep your Mac more active but use more resources. Longer intervals are more efficient but may allow brief idle periods.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("•")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                            Text("Tip: The app will automatically click at the specified coordinates to prevent your Mac from going idle.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 40)
+            }
+            .padding(32)
+            .frame(minWidth: 480, idealWidth: 520, maxWidth: .infinity)
         }
-        .padding()
-        .frame(width: 500, height: 600)
+        .frame(minWidth: 480, idealWidth: 520, maxWidth: .infinity, minHeight: 600, idealHeight: 660, maxHeight: .infinity)
         .sheet(isPresented: $showingLogs) {
             LogView()
                 .environmentObject(controller)
@@ -185,15 +307,29 @@ struct MainView: View {
             }
         }
         .onAppear {
-            activateWindow()
+            // Delay window activation to avoid issues during view setup
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                activateWindow()
+            }
         }
     }
     
     private func activateWindow() {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
-        if let window = NSApplication.shared.windows.first(where: { $0.frame.width >= 400 }) {
-            window.makeKeyAndOrderFront(nil)
+        
+        // Find and configure the main window safely
+        // Use autoreleasepool to ensure proper memory management
+        autoreleasepool {
+            for window in NSApplication.shared.windows {
+                // Only process windows that look like our main window
+                guard window.frame.width >= 400, window.isVisible else { continue }
+                
+                window.title = "Don't Be AFK"
+                window.minSize = NSSize(width: 480, height: 600)
+                window.makeKeyAndOrderFront(nil)
+                break // Only configure the first matching window
+            }
         }
     }
 }
@@ -205,25 +341,37 @@ struct LogView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Logs")
-                    .font(.headline)
+                Label("Logs", systemImage: "doc.text")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.primary)
+                
                 Spacer()
-                Button("Close") {
-                    dismiss()
+                
+                Button(action: { dismiss() }) {
+                    Text("Done")
+                        .font(.system(size: 13, weight: .medium))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(6)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.plain)
             }
-            .padding()
+            .padding(20)
+            .background(.regularMaterial)
             
             Divider()
             
             ScrollView {
                 Text(controller.getLogs())
-                    .font(.system(.body, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
+                    .padding(20)
+                    .foregroundColor(.primary)
             }
+            .background(Color(NSColor.textBackgroundColor))
         }
-        .frame(width: 600, height: 400)
+        .frame(width: 600, height: 450)
     }
 }

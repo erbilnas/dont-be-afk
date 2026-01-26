@@ -68,9 +68,8 @@ get_interval() {
     
     # Try to load from config
     if load_config && [[ -n "$interval" ]]; then
-        local formatted=$(format_interval "$interval")
         echo ""
-        echo "⏰ Found saved interval: $formatted ($interval seconds)"
+        echo "⏰ Found saved interval: $interval seconds"
         read -p "Use saved interval? (Y/n): " response
         if [[ -z "$response" ]] || [[ "$response" =~ ^[Yy]$ ]]; then
             use_defaults=true
@@ -81,21 +80,17 @@ get_interval() {
         echo ""
         echo "⏰ Set click interval"
         echo ""
-        echo "You can enter:"
-        echo "  - Seconds: 300, 600, 1800"
-        echo "  - Minutes: 5m, 10m, 30m"
-        echo "  - Hours: 1h, 2h"
+        echo "Enter interval in seconds (e.g., 300, 600, 1800)"
         echo ""
         if [[ -n "$interval" ]]; then
-            local formatted=$(format_interval "$interval")
-            echo "Current saved: $formatted ($interval seconds)"
+            echo "Current saved: $interval seconds"
         else
-            echo "Current default: 10m (600 seconds)"
+            echo "Current default: $DEFAULT_INTERVAL seconds"
         fi
         echo ""
         
         while true; do
-            read -p "Enter interval (or press Enter for default): " input
+            read -p "Enter interval in seconds (or press Enter for default): " input
             if [[ -z "$input" ]]; then
                 interval=${interval:-$DEFAULT_INTERVAL}
             else
@@ -103,7 +98,7 @@ get_interval() {
                 if [[ $? -eq 0 ]] && [[ -n "$parsed" ]] && [[ "$parsed" -ge 1 ]]; then
                     interval=$parsed
                 else
-                    echo "❌ Invalid format. Use seconds (300) or time units (5m, 10m, 1h)"
+                    echo "❌ Invalid format. Please enter a number (seconds only, e.g., 300, 600)"
                     continue
                 fi
             fi
@@ -111,6 +106,8 @@ get_interval() {
         done
     fi
     
-    local formatted=$(format_interval "$interval")
-    echo "✅ Interval set to: $formatted ($interval seconds)"
+    echo "✅ Interval set to: $interval seconds"
+    
+    # Warn if interval exceeds Mac lock time
+    warn_if_interval_exceeds_lock_time "$interval"
 }

@@ -3,8 +3,14 @@
 # Configuration Management Module
 # Handles loading and saving configuration
 
+# Use Application Support directory to avoid permission prompts on macOS
+APP_SUPPORT_DIR="$HOME/Library/Application Support/DontBeAFK"
+
+# Create directory if it doesn't exist
+mkdir -p "$APP_SUPPORT_DIR" 2>/dev/null
+
 # Configuration file path
-CONFIG_FILE="$HOME/.dont-be-afk-config"
+CONFIG_FILE="$APP_SUPPORT_DIR/config"
 
 # Default values
 DEFAULT_X=500

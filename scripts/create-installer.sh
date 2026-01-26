@@ -13,13 +13,27 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-APP_NAME="DontBeAFK"
+APP_NAME="Don't Be AFK"
 BUNDLE_ID="com.dontbeafk.app"
-VERSION="${1:-1.0}"  # Allow version as first argument
-BUILD_NUMBER="1"
 INSTALLER_NAME="DontBeAFK-Installer"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$PROJECT_ROOT"
+
+# Get version from argument or git tag
+if [ -n "$1" ]; then
+    VERSION="$1"
+else
+    GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+    VERSION="${GIT_TAG#v}"  # Remove 'v' prefix if present
+    if [ -z "$VERSION" ]; then
+        VERSION="1.0.0"
+    fi
+fi
+
+# Get commit count for build number
+BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo "1")
 BUILD_DIR="$PROJECT_ROOT/build"
 PKG_DIR="$PROJECT_ROOT/pkg"
 DMG_DIR="$PROJECT_ROOT/dmg"
@@ -76,21 +90,23 @@ check_prerequisites() {
 
 # Build the app
 build_app() {
-    print_info "Building ${APP_NAME}..."
+    print_info "Building ${APP_NAME} v${VERSION} (Build ${BUILD_NUMBER})..."
     
     # Clean previous builds
     rm -rf "$BUILD_DIR"
     rm -rf "${PROJECT_ROOT}/${APP_NAME}.app"
     
-    # Build the app
-    xcodebuild -project "${PROJECT_ROOT}/${APP_NAME}.xcodeproj" \
-               -scheme "${APP_NAME}" \
+    # Build the app with version from git tag
+    xcodebuild -project "${PROJECT_ROOT}/DontBeAFK.xcodeproj" \
+               -scheme "DontBeAFK" \
                -configuration Release \
                -derivedDataPath "$BUILD_DIR" \
                clean build \
                CODE_SIGN_IDENTITY="" \
                CODE_SIGNING_REQUIRED=NO \
-               CODE_SIGNING_ALLOWED=NO
+               CODE_SIGNING_ALLOWED=NO \
+               MARKETING_VERSION="${VERSION}" \
+               CURRENT_PROJECT_VERSION="${BUILD_NUMBER}"
     
     if [ ! -d "$APP_PATH" ]; then
         print_error "Build failed - app not found at $APP_PATH"
@@ -123,7 +139,7 @@ create_postinstall_script() {
 
 set -e
 
-APP_NAME="DontBeAFK"
+APP_NAME="Don't Be AFK"
 APP_PATH="/Applications/${APP_NAME}.app"
 
 # Check if app was installed
@@ -257,7 +273,7 @@ WELCOME_EOF
     <h2>Next Steps:</h2>
     <ol>
         <li>Open <strong>Applications</strong> folder</li>
-        <li>Launch <strong>DontBeAFK.app</strong></li>
+        <li>Launch <strong>Don't Be AFK.app</strong></li>
         <li>Grant accessibility permissions when prompted</li>
         <li>Configure your settings and start the automation</li>
     </ol>

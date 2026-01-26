@@ -46,14 +46,14 @@ Commands:
 Options:
   -x, --x-coord NUM    X coordinate (default: $DEFAULT_X)
   -y, --y-coord NUM    Y coordinate (default: $DEFAULT_Y)
-  -i, --interval TIME  Interval in seconds or format like 5m, 10m, 1h (default: 600)
+  -i, --interval SECONDS  Interval in seconds (default: 600)
   -b, --background     Run in background mode
   -l, --log            Enable logging to file ($LOG_FILE)
   -c, --config         Show current configuration
 
 Examples:
   $0                                    # Interactive mode
-  $0 start -x 100 -y 200 -i 5m         # Start with specific settings
+  $0 start -x 100 -y 200 -i 300        # Start with specific settings
   $0 start --background --log          # Start in background with logging
   $0 stop                               # Stop running instance
   $0 status                             # Check status
@@ -95,6 +95,8 @@ while [[ $# -gt 0 ]]; do
                 echo "❌ Invalid interval format: $interval_input"
                 exit 1
             fi
+            # Warn if interval exceeds Mac lock time
+            warn_if_interval_exceeds_lock_time "$interval"
             shift 2
             ;;
         -b|--background)
@@ -109,7 +111,7 @@ while [[ $# -gt 0 ]]; do
             if load_config; then
                 echo "Current configuration:"
                 echo "  Coordinates: ($x_coord, $y_coord)"
-                echo "  Interval: $(format_interval $interval) ($interval seconds)"
+                echo "  Interval: $interval seconds"
                 echo "  Log to file: $log_to_file"
             else
                 echo "No saved configuration found"
@@ -145,6 +147,8 @@ if [[ "$command" == "start" ]]; then
         if ! validate_coordinates "$x_coord" "$y_coord"; then
             exit 1
         fi
+        # Warn if interval exceeds Mac lock time
+        warn_if_interval_exceeds_lock_time "$interval"
     fi
     
     # Ask about logging if not specified
@@ -168,7 +172,22 @@ if [[ "$command" == "start" ]]; then
 # Wrapper script for background execution
 SCRIPT_DIR="$SCRIPT_DIR"
 LIB_DIR="$LIB_DIR"
-source "\$LIB_DIR/source-all.sh"
+# Use Application Support directory to avoid permission prompts on macOS
+APP_SUPPORT_DIR="\$HOME/Library/Application Support/DontBeAFK"
+mkdir -p "\$APP_SUPPORT_DIR" 2>/dev/null
+PID_FILE="\$APP_SUPPORT_DIR/pid"
+# Write our own PID to the PID file immediately
+echo \$\$ > "\$PID_FILE"
+# Cleanup function to remove PID file on exit
+cleanup_wrapper() {
+    rm -f "\$PID_FILE"
+}
+trap cleanup_wrapper EXIT
+# Source modules and run
+if ! source "\$LIB_DIR/source-all.sh"; then
+    echo "Error: Failed to source modules" >&2
+    exit 1
+fi
 x_coord=$x_coord
 y_coord=$y_coord
 interval=$interval
@@ -186,8 +205,15 @@ EOF
             nohup bash -c "$wrapper_script" > /dev/null 2>&1 &
         fi
         bg_pid=$!
-        echo "$bg_pid" > "$PID_FILE"
-        echo "🚀 Starting in background mode (PID: $bg_pid)"
+        # Wait a moment for the wrapper script to write its PID
+        sleep 0.2
+        # Read the PID that the wrapper script wrote (it will be the actual bash process PID)
+        if [[ -f "$PID_FILE" ]]; then
+            actual_pid=$(cat "$PID_FILE" 2>/dev/null)
+            echo "🚀 Starting in background mode (PID: $actual_pid)"
+        else
+            echo "🚀 Starting in background mode (PID: $bg_pid)"
+        fi
         echo "   Use './dont-be-afk stop' to stop"
         echo "   Use './dont-be-afk status' to check status"
         if [[ "$log_to_file" == true ]]; then

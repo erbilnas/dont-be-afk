@@ -3,11 +3,28 @@
 # Create release files for GitHub
 # Usage: ./create-release.sh [version]
 # Example: ./create-release.sh 1.0.0
+# If no version is provided, it will use the latest git tag
 
 set -e
 
-VERSION="${1:-1.0.0}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$PROJECT_ROOT"
+
+# Get version from argument or git tag
+if [ -n "$1" ]; then
+    VERSION="$1"
+else
+    GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+    VERSION="${GIT_TAG#v}"  # Remove 'v' prefix if present
+    if [ -z "$VERSION" ]; then
+        VERSION="1.0.0"
+        echo "⚠️  No git tag found, using default version: $VERSION"
+    else
+        echo "🏷️  Using version from git tag: $VERSION"
+    fi
+fi
 
 # Colors
 GREEN='\033[0;32m'
