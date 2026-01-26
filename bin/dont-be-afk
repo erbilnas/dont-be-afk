@@ -1,0 +1,217 @@
+#!/bin/bash
+
+# Don't Be AFK - Enhanced Version
+# A script to prevent your Mac from going idle by automatically clicking at specified coordinates
+
+# Get the script directory and set up paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$SCRIPT_DIR/../lib"
+
+# Source all modules
+source "$LIB_DIR/config.sh"
+source "$LIB_DIR/logger.sh"
+source "$LIB_DIR/utils.sh"
+source "$LIB_DIR/validation.sh"
+source "$LIB_DIR/process.sh"
+source "$LIB_DIR/install.sh"
+source "$LIB_DIR/input.sh"
+source "$LIB_DIR/click.sh"
+
+# Global variables
+x_coord=$DEFAULT_X
+y_coord=$DEFAULT_Y
+interval=$DEFAULT_INTERVAL
+background_mode=false
+log_to_file=false
+
+# Function to cleanup on exit
+cleanup() {
+    if [[ -f "$PID_FILE" ]]; then
+        rm -f "$PID_FILE"
+    fi
+    if [[ "$background_mode" == false ]]; then
+        echo ""
+        echo "👋 Stopped. Thanks for using Don't Be AFK!"
+    fi
+    exit 0
+}
+
+# Set up signal handlers
+trap cleanup SIGINT SIGTERM
+
+# Function to show usage
+show_usage() {
+    cat <<EOF
+Usage: $0 [command] [options]
+
+Commands:
+  start [options]  Start the automation (default)
+  stop             Stop a running instance
+  status           Check if an instance is running
+  help             Show this help message
+
+Options:
+  -x, --x-coord NUM    X coordinate (default: $DEFAULT_X)
+  -y, --y-coord NUM    Y coordinate (default: $DEFAULT_Y)
+  -i, --interval TIME  Interval in seconds or format like 5m, 10m, 1h (default: 600)
+  -b, --background     Run in background mode
+  -l, --log            Enable logging to file ($LOG_FILE)
+  -c, --config         Show current configuration
+
+Examples:
+  $0                                    # Interactive mode
+  $0 start -x 100 -y 200 -i 5m         # Start with specific settings
+  $0 start --background --log          # Start in background with logging
+  $0 stop                               # Stop running instance
+  $0 status                             # Check status
+
+Configuration is saved to: $CONFIG_FILE
+EOF
+}
+
+# Parse command line arguments
+command="start"
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        start)
+            command="start"
+            shift
+            ;;
+        stop)
+            stop_instance
+            ;;
+        status)
+            check_status
+            ;;
+        help|--help|-h)
+            show_usage
+            exit 0
+            ;;
+        -x|--x-coord)
+            x_coord="$2"
+            shift 2
+            ;;
+        -y|--y-coord)
+            y_coord="$2"
+            shift 2
+            ;;
+        -i|--interval)
+            interval_input="$2"
+            interval=$(parse_interval "$interval_input")
+            if [[ $? -ne 0 ]] || [[ -z "$interval" ]]; then
+                echo "❌ Invalid interval format: $interval_input"
+                exit 1
+            fi
+            shift 2
+            ;;
+        -b|--background)
+            background_mode=true
+            shift
+            ;;
+        -l|--log)
+            log_to_file=true
+            shift
+            ;;
+        -c|--config)
+            if load_config; then
+                echo "Current configuration:"
+                echo "  Coordinates: ($x_coord, $y_coord)"
+                echo "  Interval: $(format_interval $interval) ($interval seconds)"
+                echo "  Log to file: $log_to_file"
+            else
+                echo "No saved configuration found"
+            fi
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+done
+
+# Main execution
+if [[ "$command" == "start" ]]; then
+    # Check if already running
+    check_running
+    
+    # Check cliclick installation
+    check_cliclick
+    
+    # Interactive mode if no coordinates/interval provided via CLI
+    if [[ -z "$x_coord" ]] || [[ -z "$y_coord" ]] || [[ -z "$interval" ]]; then
+        # Try to load config first
+        load_config
+        
+        # Get user preferences interactively
+        get_coordinates || exit 1
+        get_interval
+    else
+        # Validate provided coordinates
+        if ! validate_coordinates "$x_coord" "$y_coord"; then
+            exit 1
+        fi
+    fi
+    
+    # Ask about logging if not specified
+    if [[ "$log_to_file" == false ]] && [[ "$background_mode" == false ]]; then
+        echo ""
+        read -p "Enable logging to file? ($LOG_FILE) (y/N): " response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            log_to_file=true
+        fi
+    fi
+    
+    # Save configuration
+    save_config
+    
+    # Run in background if requested
+    if [[ "$background_mode" == true ]]; then
+        # Create a wrapper script that sources all modules and runs the loop
+        # This ensures the process survives terminal closure
+        wrapper_script=$(cat <<EOF
+#!/bin/bash
+# Wrapper script for background execution
+SCRIPT_DIR="$SCRIPT_DIR"
+LIB_DIR="$LIB_DIR"
+source "\$LIB_DIR/config.sh"
+source "\$LIB_DIR/logger.sh"
+source "\$LIB_DIR/utils.sh"
+source "\$LIB_DIR/validation.sh"
+source "\$LIB_DIR/process.sh"
+source "\$LIB_DIR/install.sh"
+source "\$LIB_DIR/input.sh"
+source "\$LIB_DIR/click.sh"
+x_coord=$x_coord
+y_coord=$y_coord
+interval=$interval
+background_mode=true
+log_to_file=$log_to_file
+run_loop
+EOF
+)
+        # Run in background with nohup to survive terminal closure
+        if [[ "$log_to_file" == true ]]; then
+            # Redirect output to log file if logging is enabled
+            nohup bash -c "$wrapper_script" >> "$LOG_FILE" 2>&1 &
+        else
+            # Redirect output to /dev/null if logging is disabled
+            nohup bash -c "$wrapper_script" > /dev/null 2>&1 &
+        fi
+        bg_pid=$!
+        echo "$bg_pid" > "$PID_FILE"
+        echo "🚀 Starting in background mode (PID: $bg_pid)"
+        echo "   Use './dont-be-afk stop' to stop"
+        echo "   Use './dont-be-afk status' to check status"
+        if [[ "$log_to_file" == true ]]; then
+            echo "   Logging to: $LOG_FILE"
+        fi
+        echo "   Process will continue running even after terminal closes"
+        exit 0
+    else
+        # Create PID file for foreground mode
+        echo $$ > "$PID_FILE"
+        run_loop
+    fi
+fi
