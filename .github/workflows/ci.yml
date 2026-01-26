@@ -11,12 +11,13 @@ jobs:
     name: Lint Scripts
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install shellcheck
         run: brew install shellcheck
 
       - name: Lint bash scripts
+        working-directory: ./cli
         run: |
           shellcheck bin/dont-be-afk || true
           shellcheck lib/*.sh || true
@@ -26,25 +27,16 @@ jobs:
     name: Build macOS UI App
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Check if xcodegen is available
-        run: |
-          if command -v xcodegen &> /dev/null; then
-            echo "xcodegen available"
-            xcodegen generate
-          else
-            echo "xcodegen not available, skipping UI build"
-            exit 0
-          fi
+      - uses: actions/checkout@v4
 
       - name: Build with xcodebuild
+        working-directory: ./app
         run: |
-          if [ -d "DontBeAFK.xcodeproj" ]; then
-            xcodebuild -project DontBeAFK.xcodeproj \
-                       -scheme DontBeAFK \
-                       -configuration Release \
-                       clean build
-          else
-            echo "No Xcode project found, skipping build"
-          fi
+          xcodebuild -project DontBeAFK.xcodeproj \
+                     -scheme DontBeAFK \
+                     -configuration Release \
+                     -derivedDataPath ./build \
+                     clean build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO

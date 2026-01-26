@@ -19,7 +19,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for version calculation
       
@@ -123,12 +123,12 @@ jobs:
           # Create package structure
           mkdir -p pkg/resources pkg/scripts
           
-          # Create postinstall script
+          # Create postinstall script (app name has spaces and apostrophe)
           cat > pkg/scripts/postinstall << 'EOF'
           #!/bin/bash
-          chmod -R 755 "/Applications/DontBeAFK.app"
-          chmod +x "/Applications/DontBeAFK.app/Contents/MacOS/DontBeAFK"
-          xattr -d com.apple.quarantine "/Applications/DontBeAFK.app" 2>/dev/null || true
+          chmod -R 755 "/Applications/Don't Be AFK.app"
+          chmod +x "/Applications/Don't Be AFK.app/Contents/MacOS/Don't Be AFK"
+          xattr -d com.apple.quarantine "/Applications/Don't Be AFK.app" 2>/dev/null || true
           exit 0
           EOF
           chmod +x pkg/scripts/postinstall
@@ -155,8 +155,31 @@ jobs:
           </installer-gui-script>
           EOF
           
+          # Create component plist for pkgbuild (app name has spaces and apostrophe)
+          cat > pkg/component.plist << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <array>
+            <dict>
+              <key>BundleHasStrictIdentifier</key>
+              <true/>
+              <key>BundleIsRelocatable</key>
+              <false/>
+              <key>BundleIsVersionChecked</key>
+              <true/>
+              <key>BundleOverwriteAction</key>
+              <string>upgrade</string>
+              <key>RootRelativeBundlePath</key>
+              <string>Don't Be AFK.app</string>
+            </dict>
+          </array>
+          </plist>
+          PLIST
+          
           # Build component package
-          pkgbuild --root ./app/build/Build/Products/Release \
+          pkgbuild --root "./app/build/Build/Products/Release" \
+                   --component-plist pkg/component.plist \
                    --identifier "com.dontbeafk.app" \
                    --version "${VERSION}" \
                    --install-location "/Applications" \
@@ -178,8 +201,8 @@ jobs:
           rm -rf "$DMG_TEMP_DIR"
           mkdir -p "$DMG_TEMP_DIR"
           
-          # Copy app to temp directory
-          cp -R ./app/build/Build/Products/Release/DontBeAFK.app "$DMG_TEMP_DIR/"
+          # Copy app to temp directory (app name has spaces and apostrophe)
+          cp -R "./app/build/Build/Products/Release/Don't Be AFK.app" "$DMG_TEMP_DIR/"
           
           # Create a symbolic link to Applications
           ln -s /Applications "$DMG_TEMP_DIR/Applications"
@@ -285,7 +308,7 @@ jobs:
       
       - name: Create Release
         if: steps.check_release.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}
