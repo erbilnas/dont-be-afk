@@ -33,7 +33,6 @@ DerivedData/
 # Installer and release files
 *.pkg
 *.dmg
-release/
 dmg_temp/
 
 # Swift Package Manager
