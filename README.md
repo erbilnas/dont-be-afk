@@ -1,7 +1,7 @@
 # Don't Be AFK
 
 <p align="left">
-  <img src="DontBeAFK/Assets.xcassets/AppIcon.appiconset/app-icon.png" alt="Don't Be AFK App Icon" width="128" height="128">
+  <img src="app/DontBeAFK/Assets.xcassets/AppIcon.appiconset/app-icon.png" alt="Don't Be AFK App Icon" width="128" height="128">
 </p>
 
 [![macOS](https://img.shields.io/badge/platform-macOS-blue.svg)](https://www.apple.com/macos/)
@@ -34,7 +34,7 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 
 ## Installation & Usage
 
-> **📖 Quick Start:** See [docs/QUICK_INSTALL.md](docs/QUICK_INSTALL.md) for a simple installation guide
+> **📖 Quick Start:** See [docs/getting-started/QUICK_INSTALL.md](docs/getting-started/QUICK_INSTALL.md) for a simple installation guide
 
 ### Quick Start - Download from GitHub Releases
 
@@ -61,8 +61,8 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 git clone https://github.com/YOUR_USERNAME/dont-be-afk.git
 cd dont-be-afk
 
-# Run the installer (installs dependencies and makes scripts executable)
-./install.sh
+# Run the CLI installer (installs dependencies and makes scripts executable)
+./cli/install.sh
 
 # Start using it!
 dont-be-afk
@@ -73,7 +73,7 @@ dont-be-afk
 **Option 1: Automated Installer (Recommended)**
 
 ```bash
-./install.sh
+./cli/install.sh
 ```
 
 The installer automatically:
@@ -84,7 +84,7 @@ The installer automatically:
 - ✅ Optionally installs to `/usr/local/bin` for global access
 
 **Option 2: Manual Installation**
-See [docs/INSTALL.md](docs/INSTALL.md) for step-by-step manual installation instructions.
+See [docs/getting-started/INSTALL.md](docs/getting-started/INSTALL.md) for step-by-step manual installation instructions.
 
 After installation, you can run `dont-be-afk` from anywhere!
 
@@ -109,7 +109,7 @@ The project includes a native macOS SwiftUI app for easy control:
 1. **Open the project in Xcode:**
 
    ```bash
-   open DontBeAFK.xcodeproj
+   open app/DontBeAFK.xcodeproj
    ```
 
 2. **Build and run:**
@@ -118,7 +118,7 @@ The project includes a native macOS SwiftUI app for easy control:
 
 3. **Or build from command line:**
    ```bash
-   ./scripts/build-ui.sh
+   ./scripts/build/build-app.sh
    ```
 
 #### Option C: Create Installer Package
@@ -126,10 +126,10 @@ The project includes a native macOS SwiftUI app for easy control:
 To create your own installer package:
 
 ```bash
-./scripts/create-installer.sh
+./scripts/release/create-installer.sh
 ```
 
-This creates a `.pkg` installer and optionally a `.dmg` disk image. See [docs/INSTALLER.md](docs/INSTALLER.md) for details.
+This creates a `.pkg` installer and optionally a `.dmg` disk image. See [docs/release/INSTALLER.md](docs/release/INSTALLER.md) for details.
 
 #### Using the UI:
 
@@ -152,7 +152,7 @@ The UI app provides:
 1. **Clone or download this repository**
 2. **Make the script executable:**
    ```bash
-   chmod +x bin/dont-be-afk
+   chmod +x cli/bin/dont-be-afk
    ```
 3. **Install dependencies:**
    ```bash
@@ -160,7 +160,7 @@ The UI app provides:
    ```
 4. **Run the script:**
    ```bash
-   ./bin/dont-be-afk
+   ./cli/bin/dont-be-afk
    ```
 
 ## Usage Modes
@@ -343,42 +343,65 @@ rm ~/.dont-be-afk-config
 
 ```
 dont-be-afk/
-├── bin/
-│   └── dont-be-afk          # Main executable script
-├── lib/                      # Script modules
-│   ├── config.sh            # Configuration management
-│   ├── logger.sh            # Logging functionality
-│   ├── utils.sh             # Utility functions
-│   ├── validation.sh        # Input validation
-│   ├── process.sh           # Process management
-│   ├── install.sh           # Installation helpers
-│   ├── input.sh             # User input handling
-│   └── click.sh             # Click automation
-├── DontBeAFK/               # macOS UI App source
-│   ├── DontBeAFKApp.swift   # App entry point
-│   ├── ScriptController.swift
-│   ├── MainView.swift
-│   ├── MenuBarView.swift
-│   └── Assets.xcassets
-├── scripts/                  # Build and release scripts
-│   ├── build-ui.sh          # Build script for UI app
-│   ├── create-installer.sh  # Create .pkg installer
-│   ├── create-dmg.sh        # Create .dmg disk image
-│   ├── create-release.sh    # Create release files
-│   ├── package-cli.sh       # Package CLI version for release
-│   └── setup-project.sh     # Setup Xcode project
-├── docs/                     # Documentation
-│   ├── BUILD_UI.md          # Building the UI app
-│   ├── INSTALL.md            # Installation guide
-│   ├── INSTALLER.md          # Installer creation guide
-│   ├── GITHUB_RELEASE.md     # GitHub release guide
-│   ├── QUICK_INSTALL.md      # Quick installation guide
-│   ├── RELEASE_CHECKLIST.md  # Release checklist
-│   ├── SECURITY.md           # Security policy
-│   ├── SETUP_XCODE.md        # Xcode setup guide
-│   └── CONTRIBUTING.md       # Contributing guidelines
-├── install.sh                # Installation script
-├── project.yml               # xcodegen configuration
+├── cli/                          # Command Line Interface
+│   ├── bin/
+│   │   └── dont-be-afk           # Main executable script
+│   ├── lib/                      # Script modules
+│   │   ├── click.sh              # Click automation
+│   │   ├── config.sh             # Configuration management
+│   │   ├── input.sh              # User input handling
+│   │   ├── install.sh            # Installation helpers
+│   │   ├── logger.sh             # Logging functionality
+│   │   ├── process.sh            # Process management
+│   │   ├── source-all.sh         # Module loader
+│   │   ├── utils.sh              # Utility functions
+│   │   └── validation.sh         # Input validation
+│   └── install.sh                # CLI installer
+│
+├── app/                          # macOS UI Application
+│   ├── DontBeAFK/                # Swift source files
+│   │   ├── App/                  # App entry point
+│   │   ├── Assets.xcassets/      # App icons and assets
+│   │   ├── Components/           # Reusable UI components
+│   │   ├── Controllers/          # Script controller
+│   │   ├── Overlay/              # Overlay window
+│   │   └── Views/                # SwiftUI views
+│   ├── DontBeAFK.xcodeproj/      # Xcode project
+│   └── project.yml               # xcodegen configuration
+│
+├── scripts/                      # Build & release scripts
+│   ├── build/
+│   │   ├── build-app.sh          # Build macOS app
+│   │   └── setup-project.sh      # Setup Xcode project
+│   ├── release/
+│   │   ├── create-dmg.sh         # Create .dmg disk image
+│   │   ├── create-installer.sh   # Create .pkg installer
+│   │   ├── create-release.sh     # Create release files
+│   │   └── package-cli.sh        # Package CLI for release
+│   └── pkg/                      # Installer resources
+│       ├── distribution.xml
+│       ├── resources/
+│       └── scripts/
+│
+├── docs/                         # Documentation
+│   ├── getting-started/
+│   │   ├── INSTALL.md            # Installation guide
+│   │   └── QUICK_INSTALL.md      # Quick start guide
+│   ├── development/
+│   │   ├── BUILD_UI.md           # Building the UI app
+│   │   ├── CONTRIBUTING.md       # Contributing guidelines
+│   │   ├── SECURITY.md           # Security policy
+│   │   └── SETUP_XCODE.md        # Xcode setup guide
+│   └── release/
+│       ├── GITHUB_RELEASE.md     # GitHub release guide
+│       ├── INSTALLER.md          # Installer creation guide
+│       └── RELEASE_CHECKLIST.md  # Release checklist
+│
+├── .github/                      # GitHub configuration
+│   ├── ISSUE_TEMPLATE/
+│   ├── workflows/
+│   └── pull_request_template.md
+│
 ├── README.md
 ├── LICENSE
 └── CHANGELOG.md
@@ -386,7 +409,7 @@ dont-be-afk/
 
 ## Contributing
 
-Contributions are welcome! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please see [docs/development/CONTRIBUTING.md](docs/development/CONTRIBUTING.md) for guidelines.
 
 Before contributing:
 
@@ -398,7 +421,7 @@ Before contributing:
 
 ## Security
 
-Please see [docs/SECURITY.md](docs/SECURITY.md) for information about security vulnerabilities and reporting.
+Please see [docs/development/SECURITY.md](docs/development/SECURITY.md) for information about security vulnerabilities and reporting.
 
 ## License
 

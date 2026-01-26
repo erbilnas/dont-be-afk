@@ -1,15 +1,18 @@
 # Xcode
 build/
-*.xcodeproj/project.xcworkspace/xcuserdata/
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
-*.xcworkspace/contents.xcworkspacedata
-*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 DerivedData/
 *.hmap
 *.ipa
 *.dSYM.zip
 *.dSYM
+
+# Xcode user-specific files
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/contents.xcworkspacedata
+*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
 
 # macOS
 .DS_Store
@@ -23,14 +26,15 @@ DerivedData/
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
 
-# App build
-DontBeAFK.app/
+# App build outputs
+*.app/
+!app/
 
 # Installer and release files
-pkg/*.pkg
 *.pkg
 *.dmg
 release/
+dmg_temp/
 
 # Swift Package Manager
 .swiftpm/
@@ -40,10 +44,13 @@ release/
 # CocoaPods
 Pods/
 
-# AppCode
+# IDEs
 .idea/
+*.xcworkspace
+!*.xcodeproj/project.xcworkspace/
 
 # User-specific files
 *.swp
 *.swo
 *~
+.vscode/
