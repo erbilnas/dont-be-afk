@@ -14,6 +14,8 @@ targets:
       - path: DontBeAFK
         excludes:
           - "**/*.plist"
+        includes:
+          - "**/*.swift"
     resources:
       - DontBeAFK/Assets.xcassets
       - DontBeAFK/Info.plist

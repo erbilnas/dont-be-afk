@@ -7,26 +7,58 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00646705BF339ACE5AC66B2E /* DontBeAFKApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42A1B3FAE70A6EBB3E03F87 /* DontBeAFKApp.swift */; };
-		5829069D2A7AE4E704F463C3 /* ClickOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F154752861576869B5B98DC1 /* ClickOverlayView.swift */; };
-		7F018BEFE83DE24F9EF7A218 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3451600214E1D0BA7C291634 /* MainView.swift */; };
-		EA5536E0604C5A05F7EFED9A /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C229BAFD1C1256D7AB307649 /* MenuBarView.swift */; };
-		F29E5D90248C622B1AD43299 /* ScriptController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D664488FF6E1C39FAC539558 /* ScriptController.swift */; };
-		F9C7358B9E4B138C098F49B9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA9489888C8EC0D1D270C71D /* Assets.xcassets */; };
+		004D456BDD00E2D84704FFB1 /* OverlayWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7DF2A45C83EEEB5311D32C /* OverlayWindowManager.swift */; };
+		0279695EF91DCDC24826B215 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4AE8FB828131DBAD4606967 /* MainView.swift */; };
+		11752ED9064C2BEBEE5FA0B5 /* SectionStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE217C215932D77C643D8A1 /* SectionStyle.swift */; };
+		276A87CF06E0CA3E994F3864 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4FC0749878402B9BA59FAE /* AppDelegate.swift */; };
+		3C286A0E56971B011AE534E9 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5356F84374E22DF845F12019 /* LogView.swift */; };
+		40AF8A5D5946674DD4BBC1E8 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1651340AD81D55FF78AC15 /* MenuBarView.swift */; };
+		80A5034F653769FBDC977B9B /* DontBeAFKApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36F4F2F21AB8C9907DB9EC /* DontBeAFKApp.swift */; };
+		92132DAFADAB49CABFEA6F00 /* HelpComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6090992437CC933CB8CD319 /* HelpComponents.swift */; };
+		93B3675E965A8751BC8278E4 /* HelpContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A17457253ACE7A795CDC09F /* HelpContentView.swift */; };
+		BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D9E78C07EE1F22585A6313 /* ScriptController.swift */; };
+		BD68170A86098CA1DDAD5C8E /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */; };
+		C31ED2D46C4813F71C21B6B2 /* MenuComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */; };
+		D891E4EE3AFECA6EFCC747C6 /* HelpWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3831F1A794422814DF2762F5 /* HelpWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		20257829E5FF644F221AE92D /* DontBeAFK.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DontBeAFK.entitlements; sourceTree = "<group>"; };
-		3451600214E1D0BA7C291634 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		0A36F4F2F21AB8C9907DB9EC /* DontBeAFKApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DontBeAFKApp.swift; sourceTree = "<group>"; };
+		15D9E78C07EE1F22585A6313 /* ScriptController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptController.swift; sourceTree = "<group>"; };
+		3831F1A794422814DF2762F5 /* HelpWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpWindow.swift; sourceTree = "<group>"; };
+		3EE217C215932D77C643D8A1 /* SectionStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionStyle.swift; sourceTree = "<group>"; };
+		4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		4F4F149BF3D98CEA4F8EA304 /* DontBeAFK.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DontBeAFK.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C229BAFD1C1256D7AB307649 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
-		C42A1B3FAE70A6EBB3E03F87 /* DontBeAFKApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DontBeAFKApp.swift; sourceTree = "<group>"; };
-		D664488FF6E1C39FAC539558 /* ScriptController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptController.swift; sourceTree = "<group>"; };
-		DA9489888C8EC0D1D270C71D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F154752861576869B5B98DC1 /* ClickOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickOverlayView.swift; sourceTree = "<group>"; };
+		5356F84374E22DF845F12019 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
+		5A17457253ACE7A795CDC09F /* HelpContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpContentView.swift; sourceTree = "<group>"; };
+		7E4FC0749878402B9BA59FAE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A4AE8FB828131DBAD4606967 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		B6090992437CC933CB8CD319 /* HelpComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpComponents.swift; sourceTree = "<group>"; };
+		BC7DF2A45C83EEEB5311D32C /* OverlayWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowManager.swift; sourceTree = "<group>"; };
+		CA1651340AD81D55FF78AC15 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuComponents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		019CF60A1C5124952500C86A /* Overlay */ = {
+			isa = PBXGroup;
+			children = (
+				4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */,
+				BC7DF2A45C83EEEB5311D32C /* OverlayWindowManager.swift */,
+			);
+			path = Overlay;
+			sourceTree = "<group>";
+		};
+		1807760EDB8828F8EC91EC51 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B6090992437CC933CB8CD319 /* HelpComponents.swift */,
+				EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */,
+				3EE217C215932D77C643D8A1 /* SectionStyle.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		66F7DF2B1F2476EBDF52A2C0 = {
 			isa = PBXGroup;
 			children = (
@@ -43,16 +75,51 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		7019CC4DE76491B79EC60F55 /* Help */ = {
+			isa = PBXGroup;
+			children = (
+				5A17457253ACE7A795CDC09F /* HelpContentView.swift */,
+				3831F1A794422814DF2762F5 /* HelpWindow.swift */,
+			);
+			path = Help;
+			sourceTree = "<group>";
+		};
+		8906DB10D71B2B9A1E630584 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				7E4FC0749878402B9BA59FAE /* AppDelegate.swift */,
+				0A36F4F2F21AB8C9907DB9EC /* DontBeAFKApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AEE8C6496A2FC57C5377F19F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5356F84374E22DF845F12019 /* LogView.swift */,
+				A4AE8FB828131DBAD4606967 /* MainView.swift */,
+				CA1651340AD81D55FF78AC15 /* MenuBarView.swift */,
+				7019CC4DE76491B79EC60F55 /* Help */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B267D2235BB02D268C6CA6E1 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				15D9E78C07EE1F22585A6313 /* ScriptController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
 		FDA8F5EA3B1A429174C4FC9F /* DontBeAFK */ = {
 			isa = PBXGroup;
 			children = (
-				DA9489888C8EC0D1D270C71D /* Assets.xcassets */,
-				F154752861576869B5B98DC1 /* ClickOverlayView.swift */,
-				20257829E5FF644F221AE92D /* DontBeAFK.entitlements */,
-				C42A1B3FAE70A6EBB3E03F87 /* DontBeAFKApp.swift */,
-				3451600214E1D0BA7C291634 /* MainView.swift */,
-				C229BAFD1C1256D7AB307649 /* MenuBarView.swift */,
-				D664488FF6E1C39FAC539558 /* ScriptController.swift */,
+				8906DB10D71B2B9A1E630584 /* App */,
+				1807760EDB8828F8EC91EC51 /* Components */,
+				B267D2235BB02D268C6CA6E1 /* Controllers */,
+				019CF60A1C5124952500C86A /* Overlay */,
+				AEE8C6496A2FC57C5377F19F /* Views */,
 			);
 			path = DontBeAFK;
 			sourceTree = "<group>";
@@ -66,7 +133,6 @@
 			buildPhases = (
 				D5DC598B6577B26E0B176688 /* Set Version from Git Tag */,
 				FF9E7C858532CA563CA435AB /* Sources */,
-				592BC86F1184C2EA1DEA91CF /* Resources */,
 			);
 			buildRules = (
 			);
@@ -112,17 +178,6 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXResourcesBuildPhase section */
-		592BC86F1184C2EA1DEA91CF /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F9C7358B9E4B138C098F49B9 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXShellScriptBuildPhase section */
 		D5DC598B6577B26E0B176688 /* Set Version from Git Tag */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -150,11 +205,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5829069D2A7AE4E704F463C3 /* ClickOverlayView.swift in Sources */,
-				00646705BF339ACE5AC66B2E /* DontBeAFKApp.swift in Sources */,
-				7F018BEFE83DE24F9EF7A218 /* MainView.swift in Sources */,
-				EA5536E0604C5A05F7EFED9A /* MenuBarView.swift in Sources */,
-				F29E5D90248C622B1AD43299 /* ScriptController.swift in Sources */,
+				276A87CF06E0CA3E994F3864 /* AppDelegate.swift in Sources */,
+				80A5034F653769FBDC977B9B /* DontBeAFKApp.swift in Sources */,
+				92132DAFADAB49CABFEA6F00 /* HelpComponents.swift in Sources */,
+				93B3675E965A8751BC8278E4 /* HelpContentView.swift in Sources */,
+				D891E4EE3AFECA6EFCC747C6 /* HelpWindow.swift in Sources */,
+				3C286A0E56971B011AE534E9 /* LogView.swift in Sources */,
+				0279695EF91DCDC24826B215 /* MainView.swift in Sources */,
+				40AF8A5D5946674DD4BBC1E8 /* MenuBarView.swift in Sources */,
+				C31ED2D46C4813F71C21B6B2 /* MenuComponents.swift in Sources */,
+				BD68170A86098CA1DDAD5C8E /* OverlayView.swift in Sources */,
+				004D456BDD00E2D84704FFB1 /* OverlayWindowManager.swift in Sources */,
+				BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */,
+				11752ED9064C2BEBEE5FA0B5 /* SectionStyle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
