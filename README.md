@@ -423,9 +423,15 @@ Before contributing:
 
 Please see [docs/development/SECURITY.md](docs/development/SECURITY.md) for information about security vulnerabilities and reporting.
 
+## Author
+
+**Erbil Nas** - Creator and maintainer
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is **free and open source** software, licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+You are free to use, modify, and distribute this software for any purpose, including commercial use.
 
 ## Acknowledgments
 
