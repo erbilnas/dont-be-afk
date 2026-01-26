@@ -1,5 +1,6 @@
 # Xcode
 build/
+!scripts/build/
 DerivedData/
 *.hmap
 *.ipa
