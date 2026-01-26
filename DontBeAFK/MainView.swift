@@ -32,9 +32,15 @@ struct MainView: View {
                     .font(.headline)
                 
                 HStack {
-                    Circle()
-                        .fill(controller.isRunning ? Color.green : Color.red)
-                        .frame(width: 12, height: 12)
+                    if controller.isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .frame(width: 12, height: 12)
+                    } else {
+                        Circle()
+                            .fill(controller.isRunning ? Color.green : Color.red)
+                            .frame(width: 12, height: 12)
+                    }
                     
                     Text(controller.statusMessage)
                         .font(.body)
@@ -94,38 +100,62 @@ struct MainView: View {
             .cornerRadius(8)
             
             // Controls
-            HStack(spacing: 12) {
-                Button(action: {
-                    if controller.isRunning {
-                        controller.stop()
-                    } else {
-                        controller.start()
+            VStack(spacing: 8) {
+                HStack(spacing: 12) {
+                    Button(action: {
+                        if controller.isRunning {
+                            controller.stop()
+                        } else {
+                            controller.start()
+                        }
+                    }) {
+                        HStack {
+                            if controller.isLoading {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                    .frame(width: 16, height: 16)
+                            } else {
+                                Image(systemName: controller.isRunning ? "stop.fill" : "play.fill")
+                            }
+                            Text(controller.isLoading ? (controller.isRunning ? "Stopping..." : "Starting...") : (controller.isRunning ? "Stop" : "Start"))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
                     }
-                }) {
-                    HStack {
-                        Image(systemName: controller.isRunning ? "stop.fill" : "play.fill")
-                        Text(controller.isRunning ? "Stop" : "Start")
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(controller.isLoading || controller.xCoord < 0 || controller.yCoord < 0)
+                    
+                    Button(action: {
+                        showingLogs.toggle()
+                    }) {
+                        HStack {
+                            Image(systemName: "doc.text")
+                            Text("View Logs")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(controller.isLoading)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(controller.xCoord < 0 || controller.yCoord < 0)
                 
-                Button(action: {
-                    showingLogs.toggle()
-                }) {
+                // Validation feedback
+                if !controller.isLoading && !controller.isRunning && (controller.xCoord < 0 || controller.yCoord < 0) {
                     HStack {
-                        Image(systemName: "doc.text")
-                        Text("View Logs")
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                        Text("Please enter valid coordinates (≥ 0)")
+                            .font(.caption)
+                            .foregroundColor(.orange)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 4)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
             }
+                
             
             Spacer()
             
@@ -142,6 +172,17 @@ struct MainView: View {
         .sheet(isPresented: $showingLogs) {
             LogView()
                 .environmentObject(controller)
+        }
+        .alert("Error", isPresented: $controller.showError) {
+            Button("OK", role: .cancel) {
+                controller.errorMessage = nil
+            }
+        } message: {
+            if let errorMessage = controller.errorMessage {
+                Text(errorMessage)
+            } else {
+                Text("An unknown error occurred")
+            }
         }
         .onAppear {
             activateWindow()

@@ -167,6 +167,40 @@ jobs:
                        --package-path pkg \
                        "DontBeAFK-Installer-${VERSION}.pkg"
       
+      - name: Create DMG Disk Image
+        if: steps.version.outputs.skip_release != 'true'
+        run: |
+          # Create temporary directory for DMG contents
+          DMG_TEMP_DIR="dmg_temp"
+          DMG_NAME="DontBeAFK-${VERSION}.dmg"
+          
+          rm -rf "$DMG_TEMP_DIR"
+          mkdir -p "$DMG_TEMP_DIR"
+          
+          # Copy app to temp directory
+          cp -R ./build/Build/Products/Release/DontBeAFK.app "$DMG_TEMP_DIR/"
+          
+          # Create a symbolic link to Applications
+          ln -s /Applications "$DMG_TEMP_DIR/Applications"
+          
+          # Create DMG using hdiutil
+          hdiutil create -volname "Don't Be AFK" \
+                         -srcfolder "$DMG_TEMP_DIR" \
+                         -ov \
+                         -format UDZO \
+                         "$DMG_NAME"
+          
+          # Clean up
+          rm -rf "$DMG_TEMP_DIR"
+          
+          if [ -f "$DMG_NAME" ]; then
+            echo "✅ DMG created: $DMG_NAME"
+            echo "Size: $(du -h "$DMG_NAME" | cut -f1)"
+          else
+            echo "❌ Failed to create DMG"
+            exit 1
+          fi
+      
       - name: Package Command Line Version (macOS)
         if: steps.version.outputs.skip_release != 'true'
         run: |
@@ -199,9 +233,11 @@ jobs:
         run: |
           echo "Checking for release files..."
           INSTALLER_FILE="DontBeAFK-Installer-${VERSION}.pkg"
+          DMG_FILE="DontBeAFK-${VERSION}.dmg"
           CLI_FILE="release/dont-be-afk-cli-macos-${VERSION}.tar.gz"
           
           INSTALLER_EXISTS=false
+          DMG_EXISTS=false
           CLI_EXISTS=false
           
           if [ -f "$INSTALLER_FILE" ]; then
@@ -209,6 +245,13 @@ jobs:
             INSTALLER_EXISTS=true
           else
             echo "⚠️ Warning: Installer file not found: $INSTALLER_FILE"
+          fi
+          
+          if [ -f "$DMG_FILE" ]; then
+            echo "✓ Found DMG: $DMG_FILE"
+            DMG_EXISTS=true
+          else
+            echo "⚠️ Warning: DMG file not found: $DMG_FILE"
           fi
           
           if [ -f "$CLI_FILE" ]; then
@@ -222,6 +265,9 @@ jobs:
           FILES_LIST=""
           if [ "$INSTALLER_EXISTS" = "true" ]; then
             FILES_LIST="${FILES_LIST}${INSTALLER_FILE}"$'\n'
+          fi
+          if [ "$DMG_EXISTS" = "true" ]; then
+            FILES_LIST="${FILES_LIST}${DMG_FILE}"$'\n'
           fi
           if [ "$CLI_EXISTS" = "true" ]; then
             FILES_LIST="${FILES_LIST}${CLI_FILE}"$'\n'

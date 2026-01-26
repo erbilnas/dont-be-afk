@@ -16,11 +16,20 @@ class ScriptController: ObservableObject {
     @Published var interval: String = "10m"
     @Published var logToFile = false
     @Published var pid: Int?
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    @Published var showError = false
     
     private let scriptPath: String
     private let configFile = "\(NSHomeDirectory())/.dont-be-afk-config"
     private let pidFile = "\(NSHomeDirectory())/.dont-be-afk.pid"
     private let logFile = "\(NSHomeDirectory())/.dont-be-afk.log"
+    private var statusTimer: Timer?
+    
+    // Expose script path for debugging
+    var scriptPathForDebugging: String {
+        return scriptPath
+    }
     
     init() {
         // Find the script path - try multiple locations
@@ -62,9 +71,47 @@ class ScriptController: ObservableObject {
         checkStatus()
         
         // Set up timer to periodically check status
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+        statusTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             self?.checkStatus()
         }
+    }
+    
+    deinit {
+        statusTimer?.invalidate()
+    }
+    
+    private func showError(_ message: String) {
+        DispatchQueue.main.async {
+            self.errorMessage = message
+            self.showError = true
+            self.statusMessage = "Error: \(message)"
+        }
+    }
+    
+    private func validateInputs() -> Bool {
+        // Validate coordinates
+        if xCoord < 0 || yCoord < 0 {
+            showError("Coordinates must be non-negative numbers")
+            return false
+        }
+        
+        // Validate interval format (should be like "10m", "5s", "1h", or just a number)
+        let trimmedInterval = interval.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedInterval.isEmpty {
+            showError("Interval cannot be empty")
+            return false
+        }
+        
+        // Check if it's a valid format (number followed by optional s/m/h, or just a number)
+        let intervalPattern = #"^\d+[smh]?$"#
+        let regex = try? NSRegularExpression(pattern: intervalPattern, options: .caseInsensitive)
+        let range = NSRange(location: 0, length: trimmedInterval.utf16.count)
+        if regex?.firstMatch(in: trimmedInterval, options: [], range: range) == nil {
+            showError("Invalid interval format. Use formats like: 10m, 5s, 1h, or 600")
+            return false
+        }
+        
+        return true
     }
     
     func loadConfig() {
@@ -98,115 +145,304 @@ class ScriptController: ObservableObject {
     }
     
     func checkStatus() {
+        // Don't check status while loading to avoid race conditions
+        guard !isLoading else { return }
+        
         guard FileManager.default.fileExists(atPath: pidFile) else {
-            isRunning = false
-            statusMessage = "Not running"
-            pid = nil
+            DispatchQueue.main.async {
+                self.isRunning = false
+                if !self.isLoading {
+                    self.statusMessage = "Not running"
+                }
+                self.pid = nil
+            }
             return
         }
         
-        do {
-            let pidString = try String(contentsOfFile: pidFile).trimmingCharacters(in: .whitespacesAndNewlines)
-            if let pidValue = Int(pidString) {
-                pid = pidValue
-                
-                // Check if process is actually running
-                let task = Process()
-                task.executableURL = URL(fileURLWithPath: "/bin/ps")
-                task.arguments = ["-p", String(pidValue)]
-                
-                let pipe = Pipe()
-                task.standardOutput = pipe
-                task.standardError = pipe
-                
-                try task.run()
-                task.waitUntilExit()
-                
-                if task.terminationStatus == 0 {
-                    isRunning = true
-                    statusMessage = "Running (PID: \(pidValue))"
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            guard let self = self else { return }
+            
+            do {
+                let pidString = try String(contentsOfFile: self.pidFile).trimmingCharacters(in: .whitespacesAndNewlines)
+                if let pidValue = Int(pidString) {
+                    // Check if process is actually running
+                    let task = Process()
+                    task.executableURL = URL(fileURLWithPath: "/bin/ps")
+                    task.arguments = ["-p", String(pidValue)]
+                    
+                    let pipe = Pipe()
+                    task.standardOutput = pipe
+                    task.standardError = pipe
+                    
+                    try task.run()
+                    task.waitUntilExit()
+                    
+                    DispatchQueue.main.async {
+                        if task.terminationStatus == 0 {
+                            self.isRunning = true
+                            if !self.isLoading {
+                                self.statusMessage = "Running (PID: \(pidValue))"
+                            }
+                            self.pid = pidValue
+                        } else {
+                            self.isRunning = false
+                            if !self.isLoading {
+                                self.statusMessage = "Not running (stale PID file)"
+                            }
+                            // Clean up stale PID file
+                            try? FileManager.default.removeItem(atPath: self.pidFile)
+                            self.pid = nil
+                        }
+                    }
                 } else {
-                    isRunning = false
-                    statusMessage = "Not running (stale PID file)"
-                    // Clean up stale PID file
-                    try? FileManager.default.removeItem(atPath: pidFile)
-                    pid = nil
+                    DispatchQueue.main.async {
+                        self.isRunning = false
+                        if !self.isLoading {
+                            self.statusMessage = "Invalid PID file"
+                        }
+                        self.pid = nil
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.isRunning = false
+                    if !self.isLoading {
+                        self.statusMessage = "Error checking status: \(error.localizedDescription)"
+                    }
+                    self.pid = nil
                 }
             }
-        } catch {
-            isRunning = false
-            statusMessage = "Error checking status"
-            pid = nil
         }
     }
     
     func start() {
+        // Validate inputs first
+        guard validateInputs() else {
+            return
+        }
+        
         guard !isRunning else {
-            statusMessage = "Already running"
+            showError("Script is already running")
             return
         }
         
         // Check if script exists
         guard FileManager.default.fileExists(atPath: scriptPath) else {
-            statusMessage = "Script not found at: \(scriptPath)"
+            showError("Script not found at: \(scriptPath)\n\nPlease ensure the script is installed correctly.")
             return
         }
         
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/bash")
-        
-        var args = [
-            scriptPath,
-            "start",
-            "-x", String(xCoord),
-            "-y", String(yCoord),
-            "-i", interval,
-            "--background"
-        ]
-        
-        if logToFile {
-            args.append("--log")
+        // Check if script is executable
+        guard FileManager.default.isExecutableFile(atPath: scriptPath) else {
+            showError("Script is not executable: \(scriptPath)\n\nPlease run: chmod +x \(scriptPath)")
+            return
         }
         
-        task.arguments = args
+        isLoading = true
+        statusMessage = "Starting..."
         
-        do {
-            try task.run()
-            task.waitUntilExit()
+        // Run asynchronously to avoid blocking UI
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
             
-            // Update status after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.checkStatus()
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/bin/bash")
+            
+            var args = [
+                scriptPath,
+                "start",
+                "-x", String(self.xCoord),
+                "-y", String(self.yCoord),
+                "-i", self.interval.trimmingCharacters(in: .whitespacesAndNewlines),
+                "--background"
+            ]
+            
+            if self.logToFile {
+                args.append("--log")
             }
-        } catch {
-            statusMessage = "Error starting: \(error.localizedDescription)"
+            
+            task.arguments = args
+            
+            // Capture stdout and stderr
+            let stdoutPipe = Pipe()
+            let stderrPipe = Pipe()
+            let stdinPipe = Pipe()
+            task.standardOutput = stdoutPipe
+            task.standardError = stderrPipe
+            task.standardInput = stdinPipe
+            
+            // Write "y\n" to stdin before starting to auto-confirm any prompts
+            // This handles the coordinate validation warning prompt that appears during script execution
+            let confirmInput = "y\n"
+            if let inputData = confirmInput.data(using: .utf8) {
+                stdinPipe.fileHandleForWriting.write(inputData)
+                // Don't close yet - keep it open in case more input is needed
+            }
+            
+            do {
+                try task.run()
+                
+                // Close stdin after a brief delay to ensure the input is processed
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+                    stdinPipe.fileHandleForWriting.closeFile()
+                }
+                
+                // Read output asynchronously
+                let stdoutHandle = stdoutPipe.fileHandleForReading
+                let stderrHandle = stderrPipe.fileHandleForReading
+                
+                var stdoutData = Data()
+                var stderrData = Data()
+                
+                stdoutHandle.readabilityHandler = { handle in
+                    let data = handle.availableData
+                    if !data.isEmpty {
+                        stdoutData.append(data)
+                    }
+                }
+                
+                stderrHandle.readabilityHandler = { handle in
+                    let data = handle.availableData
+                    if !data.isEmpty {
+                        stderrData.append(data)
+                    }
+                }
+                
+                task.waitUntilExit()
+                
+                // Stop reading
+                stdoutHandle.readabilityHandler = nil
+                stderrHandle.readabilityHandler = nil
+                
+                let terminationStatus = task.terminationStatus
+                let stdoutString = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let stderrString = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    
+                    if terminationStatus != 0 {
+                        let errorMsg = !stderrString.isEmpty ? stderrString : stdoutString
+                        let fullError = !errorMsg.isEmpty ? errorMsg : "Script exited with code \(terminationStatus)"
+                        self.showError("Failed to start script:\n\(fullError)")
+                    } else {
+                        // Success - check status after a short delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            self.checkStatus()
+                            if self.isRunning {
+                                self.statusMessage = "Started successfully"
+                            } else {
+                                self.showError("Script started but process not found. Check logs for details.")
+                            }
+                        }
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.showError("Failed to start script: \(error.localizedDescription)\n\nError details: \(error)")
+                }
+            }
         }
     }
     
     func stop() {
         guard isRunning else {
-            statusMessage = "Not running"
+            showError("Script is not currently running")
             return
         }
         
         // Check if script exists
         guard FileManager.default.fileExists(atPath: scriptPath) else {
-            statusMessage = "Script not found at: \(scriptPath)"
+            showError("Script not found at: \(scriptPath)")
             return
         }
         
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/bash")
-        task.arguments = [scriptPath, "stop"]
+        isLoading = true
+        statusMessage = "Stopping..."
         
-        do {
-            try task.run()
-            task.waitUntilExit()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.checkStatus()
+        // Run asynchronously
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/bin/bash")
+            task.arguments = [self.scriptPath, "stop"]
+            
+            // Capture output
+            let stdoutPipe = Pipe()
+            let stderrPipe = Pipe()
+            let stdinPipe = Pipe()
+            task.standardOutput = stdoutPipe
+            task.standardError = stderrPipe
+            task.standardInput = stdinPipe
+            
+            // Write "y\n" to stdin before starting to auto-confirm any prompts
+            let confirmInput = "y\n"
+            if let inputData = confirmInput.data(using: .utf8) {
+                stdinPipe.fileHandleForWriting.write(inputData)
             }
-        } catch {
-            statusMessage = "Error stopping: \(error.localizedDescription)"
+            
+            do {
+                try task.run()
+                
+                // Close stdin after a brief delay
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+                    stdinPipe.fileHandleForWriting.closeFile()
+                }
+                
+                let stdoutHandle = stdoutPipe.fileHandleForReading
+                let stderrHandle = stderrPipe.fileHandleForReading
+                
+                var stdoutData = Data()
+                var stderrData = Data()
+                
+                stdoutHandle.readabilityHandler = { handle in
+                    let data = handle.availableData
+                    if !data.isEmpty {
+                        stdoutData.append(data)
+                    }
+                }
+                
+                stderrHandle.readabilityHandler = { handle in
+                    let data = handle.availableData
+                    if !data.isEmpty {
+                        stderrData.append(data)
+                    }
+                }
+                
+                task.waitUntilExit()
+                
+                stdoutHandle.readabilityHandler = nil
+                stderrHandle.readabilityHandler = nil
+                
+                let terminationStatus = task.terminationStatus
+                let stdoutString = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let stderrString = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    
+                    if terminationStatus != 0 {
+                        let errorMsg = !stderrString.isEmpty ? stderrString : stdoutString
+                        let fullError = !errorMsg.isEmpty ? errorMsg : "Script exited with code \(terminationStatus)"
+                        self.showError("Failed to stop script:\n\(fullError)")
+                    } else {
+                        // Success - check status after a short delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            self.checkStatus()
+                            if !self.isRunning {
+                                self.statusMessage = "Stopped successfully"
+                            }
+                        }
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.showError("Failed to stop script: \(error.localizedDescription)")
+                }
+            }
         }
     }
     
