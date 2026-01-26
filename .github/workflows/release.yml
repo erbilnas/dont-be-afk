@@ -13,6 +13,9 @@ jobs:
   build-and-release:
     name: Build and Create Release
     runs-on: macos-latest
+    permissions:
+      contents: write  # Required to create releases
+      id-token: write  # Required for OIDC if using
     
     steps:
       - name: Checkout code
@@ -186,20 +189,59 @@ jobs:
             echo "Creating new release v${VERSION}..."
           fi
       
+      - name: Verify release files exist
+        if: steps.check_release.outputs.exists == 'false'
+        id: verify_files
+        run: |
+          echo "Checking for release files..."
+          INSTALLER_FILE="DontBeAFK-Installer-${VERSION}.pkg"
+          CLI_FILE="release/dont-be-afk-cli-macos-${VERSION}.tar.gz"
+          
+          INSTALLER_EXISTS=false
+          CLI_EXISTS=false
+          
+          if [ -f "$INSTALLER_FILE" ]; then
+            echo "✓ Found installer: $INSTALLER_FILE"
+            INSTALLER_EXISTS=true
+          else
+            echo "⚠️ Warning: Installer file not found: $INSTALLER_FILE"
+          fi
+          
+          if [ -f "$CLI_FILE" ]; then
+            echo "✓ Found CLI package: $CLI_FILE"
+            CLI_EXISTS=true
+          else
+            echo "⚠️ Warning: CLI file not found: $CLI_FILE"
+          fi
+          
+          # Build files list dynamically
+          FILES_LIST=""
+          if [ "$INSTALLER_EXISTS" = "true" ]; then
+            FILES_LIST="${FILES_LIST}${INSTALLER_FILE}"$'\n'
+          fi
+          if [ "$CLI_EXISTS" = "true" ]; then
+            FILES_LIST="${FILES_LIST}${CLI_FILE}"$'\n'
+          fi
+          
+          if [ -z "$FILES_LIST" ]; then
+            echo "❌ No release files found! Aborting release creation."
+            exit 1
+          fi
+          
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo -n "$FILES_LIST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
       - name: Create Release
         if: steps.check_release.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${VERSION}
-          name: Release v${VERSION}
-          files: |
-            DontBeAFK-Installer-${VERSION}.pkg
-            release/dont-be-afk-cli-macos-${VERSION}.tar.gz
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          files: ${{ steps.verify_files.outputs.files }}
           draft: false
           prerelease: false
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Create and push tag
         if: steps.check_release.outputs.exists == 'false' && startsWith(github.ref, 'refs/heads/')

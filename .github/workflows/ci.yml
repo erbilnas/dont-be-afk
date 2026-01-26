@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   lint:
@@ -12,10 +12,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Install shellcheck
         run: brew install shellcheck
-      
+
       - name: Lint bash scripts
         run: |
           shellcheck bin/dont-be-afk || true
@@ -27,7 +27,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Check if xcodegen is available
         run: |
           if command -v xcodegen &> /dev/null; then
@@ -37,7 +37,7 @@ jobs:
             echo "xcodegen not available, skipping UI build"
             exit 0
           fi
-      
+
       - name: Build with xcodebuild
         run: |
           if [ -d "DontBeAFK.xcodeproj" ]; then
