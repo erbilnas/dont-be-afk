@@ -2,9 +2,63 @@
 
 This guide explains how to create releases on GitHub with both the macOS installer (.pkg) and command line version.
 
-## Quick Release
+## Automatic Releases (Recommended)
 
-### Option 1: Automated Release (Recommended)
+**The workflow automatically creates releases for every feature or fix committed to master/main!**
+
+### How It Works
+
+When you push commits to `master` or `main`, the GitHub Actions workflow will:
+
+1. **Analyze commit messages** to determine the version bump:
+   - `feat:` or `feature:` → **Minor version bump** (e.g., 1.0.0 → 1.1.0)
+   - `fix:` or `bugfix:` → **Patch version bump** (e.g., 1.0.0 → 1.0.1)
+   - `BREAKING CHANGE` or `!:` → **Major version bump** (e.g., 1.0.0 → 2.0.0)
+   - Other commits → **Patch version bump** (default)
+
+2. **Build and package** the macOS app and CLI version
+
+3. **Create a GitHub release** with the new version
+
+4. **Automatically tag** the release
+
+### Commit Message Format
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```bash
+# Feature (minor version bump)
+git commit -m "feat: add dark mode support"
+
+# Bug fix (patch version bump)
+git commit -m "fix: resolve memory leak in click handler"
+
+# Breaking change (major version bump)
+git commit -m "feat!: redesign API interface"
+# or
+git commit -m "feat: new API
+
+BREAKING CHANGE: old API is deprecated"
+```
+
+### Example Workflow
+
+```bash
+# Make your changes
+git add .
+git commit -m "feat: add configuration persistence"
+git push origin master
+
+# GitHub Actions will automatically:
+# - Detect "feat:" → bump minor version
+# - Build the app
+# - Create release v1.1.0 (if current is v1.0.0)
+# - Tag and publish the release
+```
+
+## Manual Release Options
+
+### Option 1: Tag-Based Release
 
 1. **Create a version tag:**
    ```bash
@@ -15,13 +69,13 @@ This guide explains how to create releases on GitHub with both the macOS install
 2. **GitHub Actions will automatically:**
    - Build the macOS app
    - Create the installer package (.pkg)
-   - Package the command line version (.tar.gz and .zip)
+   - Package the command line version (.tar.gz)
    - Create a GitHub release with all files
 
 ### Option 2: Manual Release (One Command)
 
 ```bash
-./create-release.sh 1.0.0
+./scripts/create-release.sh 1.0.0
 ```
 
 This automatically:
@@ -41,13 +95,13 @@ Then:
 
 1. **Build the installer:**
    ```bash
-   ./create-installer.sh
+   ./scripts/create-installer.sh
    ```
    This creates: `DontBeAFK-Installer-1.0.pkg`
 
 2. **Package the CLI version:**
    ```bash
-   ./package-cli.sh 1.0.0
+   ./scripts/package-cli.sh 1.0.0
    ```
    This creates:
    - `release/dont-be-afk-cli-macos-1.0.0.tar.gz`
@@ -107,7 +161,7 @@ Then:
 
 ## Documentation
 
-- [README.md](README.md) - Full documentation
+- [../README.md](../README.md) - Full documentation
 - [INSTALL.md](INSTALL.md) - Installation guide
 - [INSTALLER.md](INSTALLER.md) - Installer creation guide
 ```

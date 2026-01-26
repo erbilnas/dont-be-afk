@@ -6,7 +6,8 @@ set -e
 
 VERSION="${1:-1.0.0}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RELEASE_DIR="${SCRIPT_DIR}/release"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+RELEASE_DIR="${PROJECT_ROOT}/release"
 ARCHIVE_NAME="dont-be-afk-cli-macos-${VERSION}"
 
 print_info() {
@@ -39,10 +40,10 @@ trap "rm -rf $TEMP_DIR" EXIT
 
 # Copy files to temp directory
 mkdir -p "$TEMP_DIR/dont-be-afk-cli"
-cp -R bin/ "$TEMP_DIR/dont-be-afk-cli/"
-cp -R lib/ "$TEMP_DIR/dont-be-afk-cli/"
-cp README.md "$TEMP_DIR/dont-be-afk-cli/"
-cp LICENSE "$TEMP_DIR/dont-be-afk-cli/"
+cp -R "$PROJECT_ROOT/bin/" "$TEMP_DIR/dont-be-afk-cli/"
+cp -R "$PROJECT_ROOT/lib/" "$TEMP_DIR/dont-be-afk-cli/"
+cp "$PROJECT_ROOT/README.md" "$TEMP_DIR/dont-be-afk-cli/"
+cp "$PROJECT_ROOT/LICENSE" "$TEMP_DIR/dont-be-afk-cli/"
 
 # Create install script
 cat > "$TEMP_DIR/dont-be-afk-cli/install.sh" << 'INSTALL_EOF'

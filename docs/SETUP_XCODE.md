@@ -81,5 +81,5 @@ xcodebuild -project DontBeAFK.xcodeproj \
            clean build
 
 # Or use the build script
-./build-ui.sh
+./scripts/build-ui.sh
 ```

@@ -30,7 +30,7 @@ chmod +x lib/*.sh
 
 ### macOS UI App Development
 
-1. Create the Xcode project (see `SETUP_XCODE.md`)
+1. Create the Xcode project (see [SETUP_XCODE.md](SETUP_XCODE.md))
 2. Open `DontBeAFK.xcodeproj` in Xcode
 3. Build and run (Cmd+R)
 

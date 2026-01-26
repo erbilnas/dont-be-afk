@@ -94,7 +94,7 @@ dont-be-afk --help
    brew install xcodegen
    xcodegen generate
    
-   # OR manually create in Xcode (see SETUP_XCODE.md)
+   # OR manually create in Xcode (see docs/SETUP_XCODE.md)
    ```
 
 2. **Open in Xcode:**
@@ -110,7 +110,7 @@ dont-be-afk --help
 
 ```bash
 # Build the app
-./build-ui.sh
+./scripts/build-ui.sh
 
 # Run the app
 open DontBeAFK.app
@@ -171,7 +171,7 @@ vim bin/dont-be-afk   # Vim
 ### For macOS UI App
 
 1. **Install Xcode** from the App Store
-2. **Create the project** (see SETUP_XCODE.md)
+2. **Create the project** (see [SETUP_XCODE.md](SETUP_XCODE.md))
 3. **Open in Xcode:**
    ```bash
    open DontBeAFK.xcodeproj
@@ -227,7 +227,7 @@ If clicks aren't working:
 
 If you have issues with the Xcode project:
 
-1. See `SETUP_XCODE.md` for detailed setup instructions
+1. See [SETUP_XCODE.md](SETUP_XCODE.md) for detailed setup instructions
 2. Or use xcodegen: `brew install xcodegen && xcodegen generate`
 
 ## Uninstallation
@@ -260,6 +260,6 @@ After installation:
 4. **Configure your preferences** (coordinates, interval)
 
 For more information, see:
-- [README.md](README.md) - Main documentation
+- [../README.md](../README.md) - Main documentation
 - [SETUP_XCODE.md](SETUP_XCODE.md) - UI app setup
 - [BUILD_UI.md](BUILD_UI.md) - Building the UI app

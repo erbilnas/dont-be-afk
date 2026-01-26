@@ -29,7 +29,7 @@ Choose your preferred installation method:
 
 ```bash
 # 1. Build the installer
-./create-installer.sh
+./scripts/create-installer.sh
 
 # 2. Install the created package
 open DontBeAFK-Installer-1.0.pkg
@@ -84,7 +84,7 @@ If you want to create your own installers:
 
 ### Create PKG Installer (macOS App)
 ```bash
-./create-installer.sh 1.0
+./scripts/create-installer.sh 1.0
 # Creates: DontBeAFK-Installer-1.0.pkg
 ```
 
@@ -96,7 +96,7 @@ If you want to create your own installers:
 
 ### Create Both (Full Release)
 ```bash
-./create-release.sh 1.0.0
+./scripts/create-release.sh 1.0.0
 # Creates both PKG installer and CLI package
 ```
 
@@ -150,6 +150,6 @@ dont-be-afk --help
 
 ## 📚 More Information
 
-- **Full Documentation:** See [README.md](README.md)
+- **Full Documentation:** See [../README.md](../README.md)
 - **Manual Installation:** See [INSTALL.md](INSTALL.md)
 - **Installer Creation:** See [INSTALLER.md](INSTALLER.md)

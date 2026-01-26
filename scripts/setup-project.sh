@@ -4,6 +4,11 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$PROJECT_ROOT"
+
 echo "🔧 Setting up Xcode project for Don't Be AFK"
 echo ""
 
@@ -31,7 +36,7 @@ if [ -d "DontBeAFK.xcodeproj" ]; then
         if [[ "$response" =~ ^[Yy]$ ]]; then
             rm -rf DontBeAFK.xcodeproj
         else
-            echo "Please fix the project manually or see SETUP_XCODE.md"
+            echo "Please fix the project manually or see docs/SETUP_XCODE.md"
             exit 1
         fi
     fi
@@ -42,10 +47,10 @@ echo "📋 To set up the project, you have two options:"
 echo ""
 echo "Option 1: Install xcodegen (recommended)"
 echo "  brew install xcodegen"
-echo "  ./setup-project.sh"
+echo "  ./scripts/setup-project.sh"
 echo ""
 echo "Option 2: Create project manually in Xcode"
-echo "  See SETUP_XCODE.md for detailed instructions"
+echo "  See docs/SETUP_XCODE.md for detailed instructions"
 echo ""
 echo "The manual process takes about 2 minutes:"
 echo "  1. Open Xcode"

@@ -25,9 +25,9 @@ Use this checklist when preparing a new release on GitHub.
 ## Documentation
 
 - [ ] README.md is up to date
-- [ ] CONTRIBUTING.md is accurate
-- [ ] SETUP_XCODE.md instructions are clear
-- [ ] BUILD_UI.md is accurate
+- [ ] docs/CONTRIBUTING.md is accurate
+- [ ] docs/SETUP_XCODE.md instructions are clear
+- [ ] docs/BUILD_UI.md is accurate
 - [ ] All code examples work
 - [ ] Screenshots are current (if any)
 

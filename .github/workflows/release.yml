@@ -2,8 +2,11 @@ name: Release
 
 on:
   push:
+    branches:
+      - master
+      - main
     tags:
-      - 'v*'  # Trigger on version tags like v1.0.0
+      - 'v*'  # Also trigger on version tags like v1.0.0
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -14,19 +17,92 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for version calculation
       
       - name: Set up version
         id: version
         run: |
+          # If triggered by tag, use tag version
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "skip_release=false" >> $GITHUB_OUTPUT
+            echo "Version: $VERSION (from tag)"
           else
-            VERSION="1.0.0"
+          
+          # Get latest version from tags
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags exist, start with 1.0.0
+            CURRENT_VERSION="1.0.0"
+          else
+            # Extract version number from tag (remove 'v' prefix)
+            CURRENT_VERSION=${LATEST_TAG#v}
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version: $VERSION"
+          
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Parse version components
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]:-1}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+          
+          # Get commit messages since last tag (or last 10 commits if no tag)
+          if [ -z "$LATEST_TAG" ]; then
+            COMMITS=$(git log -10 --pretty=format:"%s")
+            COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          else
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s")
+            COMMIT_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
+          fi
+          
+          # Skip if no new commits
+          if [ "$COMMIT_COUNT" -eq "0" ] && [ -n "$LATEST_TAG" ]; then
+            echo "No new commits since last tag, skipping release"
+            echo "skip_release=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Commit count since last tag: $COMMIT_COUNT"
+          echo "Commits:"
+          echo "$COMMITS"
+          
+          # Determine version bump based on commit messages
+          VERSION_BUMP="patch"  # Default to patch
+          
+          if echo "$COMMITS" | grep -qiE "(BREAKING CHANGE|!:)"; then
+            VERSION_BUMP="major"
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif echo "$COMMITS" | grep -qiE "^feat|^feature"; then
+            VERSION_BUMP="minor"
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          elif echo "$COMMITS" | grep -qiE "^fix|^bugfix|^bug"; then
+            VERSION_BUMP="patch"
+            PATCH=$((PATCH + 1))
+          else
+            # If no conventional commit format found, bump patch version
+            VERSION_BUMP="patch"
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "skip_release=false" >> $GITHUB_OUTPUT
+          
+          echo "Version bump: $VERSION_BUMP"
+          echo "New version: $NEW_VERSION"
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          fi
       
       - name: Build macOS App
+        if: steps.version.outputs.skip_release != 'true'
         run: |
           xcodebuild -project DontBeAFK.xcodeproj \
                      -scheme DontBeAFK \
@@ -38,6 +114,7 @@ jobs:
                      CODE_SIGNING_ALLOWED=NO
       
       - name: Create Installer Package
+        if: steps.version.outputs.skip_release != 'true'
         run: |
           # Create package structure
           mkdir -p pkg/resources pkg/scripts
@@ -88,6 +165,7 @@ jobs:
                        "DontBeAFK-Installer-${VERSION}.pkg"
       
       - name: Package Command Line Version (macOS)
+        if: steps.version.outputs.skip_release != 'true'
         run: |
           mkdir -p release
           tar -czf "release/dont-be-afk-cli-macos-${VERSION}.tar.gz" \
@@ -96,9 +174,24 @@ jobs:
               README.md \
               LICENSE
       
+      - name: Check if release already exists
+        if: steps.version.outputs.skip_release != 'true'
+        id: check_release
+        run: |
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release v${VERSION} already exists, skipping..."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Creating new release v${VERSION}..."
+          fi
+      
       - name: Create Release
+        if: steps.check_release.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: v${VERSION}
+          name: Release v${VERSION}
           files: |
             DontBeAFK-Installer-${VERSION}.pkg
             release/dont-be-afk-cli-macos-${VERSION}.tar.gz
@@ -107,3 +200,11 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create and push tag
+        if: steps.check_release.outputs.exists == 'false' && startsWith(github.ref, 'refs/heads/')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"

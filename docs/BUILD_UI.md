@@ -8,7 +8,7 @@
 
 ## Setting Up the Project
 
-**IMPORTANT:** If you encounter project file errors, see `SETUP_XCODE.md` for detailed setup instructions.
+**IMPORTANT:** If you encounter project file errors, see [SETUP_XCODE.md](SETUP_XCODE.md) for detailed setup instructions.
 
 The easiest way is to create the project in Xcode:
 1. Open Xcode → File → New → Project
@@ -73,8 +73,8 @@ The app needs the same accessibility permissions as the terminal:
 ### Build Errors
 
 If you encounter build errors:
-- **Project file errors:** See `SETUP_XCODE.md` for instructions to create the project properly in Xcode
+- **Project file errors:** See [SETUP_XCODE.md](SETUP_XCODE.md) for instructions to create the project properly in Xcode
 - Make sure you're using Xcode 14.0 or later
 - Ensure macOS 13.0+ is installed
 - Clean build folder: `Product` → `Clean Build Folder` (Shift+Cmd+K)
-- If the project file is corrupted, delete `DontBeAFK.xcodeproj` and recreate it using the instructions in `SETUP_XCODE.md`
+- If the project file is corrupted, delete `DontBeAFK.xcodeproj` and recreate it using the instructions in [SETUP_XCODE.md](SETUP_XCODE.md)

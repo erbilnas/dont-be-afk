@@ -19,9 +19,10 @@ VERSION="${1:-1.0}"  # Allow version as first argument
 BUILD_NUMBER="1"
 INSTALLER_NAME="DontBeAFK-Installer"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BUILD_DIR="$SCRIPT_DIR/build"
-PKG_DIR="$SCRIPT_DIR/pkg"
-DMG_DIR="$SCRIPT_DIR/dmg"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+BUILD_DIR="$PROJECT_ROOT/build"
+PKG_DIR="$PROJECT_ROOT/pkg"
+DMG_DIR="$PROJECT_ROOT/dmg"
 APP_PATH="$BUILD_DIR/Build/Products/Release/${APP_NAME}.app"
 RESOURCES_DIR="$PKG_DIR/resources"
 SCRIPTS_DIR="$PKG_DIR/scripts"
@@ -79,10 +80,10 @@ build_app() {
     
     # Clean previous builds
     rm -rf "$BUILD_DIR"
-    rm -rf "${SCRIPT_DIR}/${APP_NAME}.app"
+    rm -rf "${PROJECT_ROOT}/${APP_NAME}.app"
     
     # Build the app
-    xcodebuild -project "${SCRIPT_DIR}/${APP_NAME}.xcodeproj" \
+    xcodebuild -project "${PROJECT_ROOT}/${APP_NAME}.xcodeproj" \
                -scheme "${APP_NAME}" \
                -configuration Release \
                -derivedDataPath "$BUILD_DIR" \
@@ -295,9 +296,9 @@ build_product_archive() {
     productbuild --distribution "$PKG_DIR/distribution.xml" \
                  --resources "$RESOURCES_DIR" \
                  --package-path "$PKG_DIR" \
-                 "${SCRIPT_DIR}/${INSTALLER_NAME}-${VERSION}.pkg"
+                 "${PROJECT_ROOT}/${INSTALLER_NAME}-${VERSION}.pkg"
     
-    if [ ! -f "${SCRIPT_DIR}/${INSTALLER_NAME}-${VERSION}.pkg" ]; then
+    if [ ! -f "${PROJECT_ROOT}/${INSTALLER_NAME}-${VERSION}.pkg" ]; then
         print_error "Failed to create product archive"
         exit 1
     fi
@@ -331,10 +332,10 @@ create_dmg() {
         --icon "${APP_NAME}.app" 150 200 \
         --hide-extension "${APP_NAME}.app" \
         --app-drop-link 450 200 \
-        "${SCRIPT_DIR}/${INSTALLER_NAME}-${VERSION}.dmg" \
+        "${PROJECT_ROOT}/${INSTALLER_NAME}-${VERSION}.dmg" \
         "$DMG_DIR"
     
-    if [ -f "${SCRIPT_DIR}/${INSTALLER_NAME}-${VERSION}.dmg" ]; then
+    if [ -f "${PROJECT_ROOT}/${INSTALLER_NAME}-${VERSION}.dmg" ]; then
         print_success "DMG created: ${INSTALLER_NAME}-${VERSION}.dmg"
     else
         print_warning "DMG creation failed, but PKG installer is available"

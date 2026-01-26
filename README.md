@@ -30,7 +30,7 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 
 ## Installation & Usage
 
-> **📖 Quick Start:** See [QUICK_INSTALL.md](QUICK_INSTALL.md) for a simple installation guide
+> **📖 Quick Start:** See [docs/QUICK_INSTALL.md](docs/QUICK_INSTALL.md) for a simple installation guide
 
 ### Quick Start - Download from GitHub Releases
 
@@ -75,7 +75,7 @@ The installer automatically:
 - ✅ Optionally installs to `/usr/local/bin` for global access
 
 **Option 2: Manual Installation**
-See [INSTALL.md](INSTALL.md) for step-by-step manual installation instructions.
+See [docs/INSTALL.md](docs/INSTALL.md) for step-by-step manual installation instructions.
 
 After installation, you can run `dont-be-afk` from anywhere!
 
@@ -108,7 +108,7 @@ The project includes a native macOS SwiftUI app for easy control:
 
 3. **Or build from command line:**
    ```bash
-   ./build-ui.sh
+   ./scripts/build-ui.sh
    ```
 
 #### Option C: Create Installer Package
@@ -116,10 +116,10 @@ The project includes a native macOS SwiftUI app for easy control:
 To create your own installer package:
 
 ```bash
-./create-installer.sh
+./scripts/create-installer.sh
 ```
 
-This creates a `.pkg` installer and optionally a `.dmg` disk image. See [INSTALLER.md](INSTALLER.md) for details.
+This creates a `.pkg` installer and optionally a `.dmg` disk image. See [docs/INSTALLER.md](docs/INSTALLER.md) for details.
 
 #### Using the UI:
 
@@ -356,23 +356,33 @@ dont-be-afk/
 │   ├── MainView.swift
 │   ├── MenuBarView.swift
 │   └── Assets.xcassets
+├── scripts/                  # Build and release scripts
+│   ├── build-ui.sh          # Build script for UI app
+│   ├── create-installer.sh  # Create .pkg installer
+│   ├── create-dmg.sh        # Create .dmg disk image
+│   ├── create-release.sh    # Create release files
+│   ├── package-cli.sh       # Package CLI version for release
+│   └── setup-project.sh     # Setup Xcode project
+├── docs/                     # Documentation
+│   ├── BUILD_UI.md          # Building the UI app
+│   ├── INSTALL.md            # Installation guide
+│   ├── INSTALLER.md          # Installer creation guide
+│   ├── GITHUB_RELEASE.md     # GitHub release guide
+│   ├── QUICK_INSTALL.md      # Quick installation guide
+│   ├── RELEASE_CHECKLIST.md  # Release checklist
+│   ├── SECURITY.md           # Security policy
+│   ├── SETUP_XCODE.md        # Xcode setup guide
+│   └── CONTRIBUTING.md       # Contributing guidelines
 ├── install.sh                # Installation script
-├── build-ui.sh              # Build script for UI app
-├── create-installer.sh      # Create .pkg installer
-├── create-dmg.sh           # Create .dmg disk image
-├── package-cli.sh          # Package CLI version for release
-├── project.yml              # xcodegen configuration
+├── project.yml               # xcodegen configuration
 ├── README.md
-├── INSTALLER.md             # Installer creation guide
-├── GITHUB_RELEASE.md        # GitHub release guide
 ├── LICENSE
-├── CONTRIBUTING.md
 └── CHANGELOG.md
 ```
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
 Before contributing:
 1. Fork the repository
@@ -383,7 +393,7 @@ Before contributing:
 
 ## Security
 
-Please see [SECURITY.md](SECURITY.md) for information about security vulnerabilities and reporting.
+Please see [docs/SECURITY.md](docs/SECURITY.md) for information about security vulnerabilities and reporting.
 
 ## License
 

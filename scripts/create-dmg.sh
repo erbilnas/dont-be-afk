@@ -15,10 +15,11 @@ NC='\033[0m' # No Color
 APP_NAME="DontBeAFK"
 VERSION="1.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_PATH="${SCRIPT_DIR}/${APP_NAME}.app"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+APP_PATH="${PROJECT_ROOT}/${APP_NAME}.app"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
-DMG_PATH="${SCRIPT_DIR}/${DMG_NAME}"
-TEMP_DMG_DIR="${SCRIPT_DIR}/dmg_temp"
+DMG_PATH="${PROJECT_ROOT}/${DMG_NAME}"
+TEMP_DMG_DIR="${PROJECT_ROOT}/dmg_temp"
 
 print_info() {
     echo -e "${BLUE}ℹ${NC} $1"
@@ -35,7 +36,7 @@ print_error() {
 # Check if app exists
 if [ ! -d "$APP_PATH" ]; then
     print_error "App not found at $APP_PATH"
-    print_info "Please build the app first using: ./build-ui.sh"
+    print_info "Please build the app first using: ./scripts/build-ui.sh"
     exit 1
 fi
 

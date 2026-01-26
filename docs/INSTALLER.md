@@ -6,14 +6,14 @@ This guide explains how to create a macOS installer package (.pkg) and disk imag
 
 - macOS 13.0 or later
 - Xcode 14.0 or later (includes Command Line Tools)
-- The app must be built first (see `BUILD_UI.md`)
+- The app must be built first (see [BUILD_UI.md](BUILD_UI.md))
 
 ## Quick Start
 
 ### Option 1: Create PKG Installer (Recommended)
 
 ```bash
-./create-installer.sh
+./scripts/create-installer.sh
 ```
 
 This will:
@@ -28,7 +28,7 @@ The installer will be created as: `DontBeAFK-Installer-1.0.pkg`
 If you already have the built app:
 
 ```bash
-./create-dmg.sh
+./scripts/create-dmg.sh
 ```
 
 This creates a `.dmg` disk image: `DontBeAFK-1.0.dmg`
