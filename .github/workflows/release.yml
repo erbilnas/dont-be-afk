@@ -106,6 +106,7 @@ jobs:
       
       - name: Build macOS App
         if: steps.version.outputs.skip_release != 'true'
+        working-directory: ./app
         run: |
           xcodebuild -project DontBeAFK.xcodeproj \
                      -scheme DontBeAFK \
@@ -155,7 +156,7 @@ jobs:
           EOF
           
           # Build component package
-          pkgbuild --root ./build/Build/Products/Release \
+          pkgbuild --root ./app/build/Build/Products/Release \
                    --identifier "com.dontbeafk.app" \
                    --version "${VERSION}" \
                    --install-location "/Applications" \
@@ -178,7 +179,7 @@ jobs:
           mkdir -p "$DMG_TEMP_DIR"
           
           # Copy app to temp directory
-          cp -R ./build/Build/Products/Release/DontBeAFK.app "$DMG_TEMP_DIR/"
+          cp -R ./app/build/Build/Products/Release/DontBeAFK.app "$DMG_TEMP_DIR/"
           
           # Create a symbolic link to Applications
           ln -s /Applications "$DMG_TEMP_DIR/Applications"
@@ -206,8 +207,8 @@ jobs:
         run: |
           mkdir -p release
           tar -czf "release/dont-be-afk-cli-macos-${VERSION}.tar.gz" \
-              bin/dont-be-afk \
-              lib/*.sh \
+              cli/bin/dont-be-afk \
+              cli/lib/*.sh \
               README.md \
               LICENSE
       
