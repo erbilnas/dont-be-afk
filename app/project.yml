@@ -17,8 +17,10 @@ targets:
         includes:
           - "**/*.swift"
     resources:
-      - DontBeAFK/Assets.xcassets
-      - DontBeAFK/Info.plist
+      - path: DontBeAFK/Assets.xcassets
+        type: folder
+      - path: DontBeAFK/Info.plist
+        type: file
     settings:
       PRODUCT_NAME: "Don't Be AFK"
       PRODUCT_BUNDLE_IDENTIFIER: com.dontbeafk.app
