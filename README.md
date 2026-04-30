@@ -1,12 +1,10 @@
 # Don't Be AFK
 
-<p align="left">
-  <img src="app/DontBeAFK/Assets.xcassets/AppIcon.appiconset/app-icon.png" alt="Don't Be AFK App Icon" width="128" height="128">
-</p>
 
-[![macOS](https://img.shields.io/badge/platform-macOS-blue.svg)](https://www.apple.com/macos/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Swift](https://img.shields.io/badge/Swift-5.0-orange.svg)](https://swift.org/)
+
+[macOS](https://www.apple.com/macos/)
+[License](LICENSE)
+[Swift](https://swift.org/)
 
 A powerful bash script with a beautiful macOS UI that automatically clicks at custom coordinates with a custom interval using cliclick to prevent your macOS system from going idle or AFK.
 
@@ -95,31 +93,27 @@ The project includes a native macOS SwiftUI app for easy control:
 #### Option A: Install from GitHub Releases (Easiest)
 
 1. **Download the installer:**
-   - Go to [Releases](https://github.com/YOUR_USERNAME/dont-be-afk/releases)
-   - Download `DontBeAFK-Installer-1.0.pkg`
-
+  - Go to [Releases](https://github.com/YOUR_USERNAME/dont-be-afk/releases)
+  - Download `DontBeAFK-Installer-1.0.pkg`
 2. **Install:**
-   - Double-click the `.pkg` file
-   - Follow the installer wizard
-   - Enter your admin password when prompted
-   - The app will be installed to `/Applications`
+  - Double-click the `.pkg` file
+  - Follow the installer wizard
+  - Enter your admin password when prompted
+  - The app will be installed to `/Applications`
 
 #### Option B: Build from Source
 
 1. **Open the project in Xcode:**
-
-   ```bash
+  ```bash
    open app/DontBeAFK.xcodeproj
-   ```
-
+  ```
 2. **Build and run:**
-   - Press `Cmd+R` or click the Run button in Xcode
-   - The app will appear in your menu bar with a cursor icon
-
+  - Press `Cmd+R` or click the Run button in Xcode
+  - The app will appear in your menu bar with a cursor icon
 3. **Or build from command line:**
-   ```bash
+  ```bash
    ./scripts/build/build-app.sh
-   ```
+  ```
 
 #### Option C: Create Installer Package
 
@@ -151,17 +145,17 @@ The UI app provides:
 
 1. **Clone or download this repository**
 2. **Make the script executable:**
-   ```bash
+  ```bash
    chmod +x cli/bin/dont-be-afk
-   ```
+  ```
 3. **Install dependencies:**
-   ```bash
+  ```bash
    brew install cliclick
-   ```
+  ```
 4. **Run the script:**
-   ```bash
+  ```bash
    ./cli/bin/dont-be-afk
-   ```
+  ```
 
 ## Usage Modes
 

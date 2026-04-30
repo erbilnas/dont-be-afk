@@ -16,9 +16,12 @@ struct DontBeAFKApp: App {
     @StateObject private var scriptController = ScriptController()
     
     var body: some Scene {
-        MenuBarExtra("Don't Be AFK", systemImage: "cursorarrow.click") {
+        MenuBarExtra {
             MenuBarView()
                 .environmentObject(scriptController)
+        } label: {
+            CursorBrandIcon(size: 15, weight: .regular)
+                .accessibilityLabel("Don't Be AFK")
         }
         .menuBarExtraStyle(.window)
         
