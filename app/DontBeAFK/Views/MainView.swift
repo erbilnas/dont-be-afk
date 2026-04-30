@@ -17,11 +17,7 @@ struct MainView: View {
             VStack(spacing: 32) {
                 // Header
                 VStack(spacing: 12) {
-                    Image(nsImage: AppBrandIcon.nsImage)
-                        .resizable()
-                        .interpolation(.high)
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 64, height: 64)
+                    CursorBrandIcon(size: 48, weight: .light)
                         .accessibilityHidden(true)
                     
                     VStack(spacing: 4) {
@@ -560,5 +556,25 @@ struct MainView: View {
                 break // Only configure the first matching window
             }
         }
+    }
+}
+
+/// SF Symbol branding: click variant on macOS 14+, `cursorarrow` fallback on 13.
+struct CursorBrandIcon: View {
+    var size: CGFloat
+    var weight: Font.Weight = .light
+
+    var body: some View {
+        Group {
+            if #available(macOS 14.0, *) {
+                Image(systemName: "cursorarrow.click")
+                    .font(.system(size: size, weight: weight))
+            } else {
+                Image(systemName: "cursorarrow")
+                    .font(.system(size: size, weight: weight))
+            }
+        }
+        .foregroundColor(.primary)
+        .symbolRenderingMode(.hierarchical)
     }
 }

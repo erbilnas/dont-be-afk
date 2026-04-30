@@ -20,11 +20,7 @@ struct DontBeAFKApp: App {
             MenuBarView()
                 .environmentObject(scriptController)
         } label: {
-            Image(nsImage: AppBrandIcon.nsImage)
-                .resizable()
-                .interpolation(.high)
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 18, height: 18)
+            CursorBrandIcon(size: 15, weight: .regular)
                 .accessibilityLabel("Don't Be AFK")
         }
         .menuBarExtraStyle(.window)
