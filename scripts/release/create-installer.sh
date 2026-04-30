@@ -140,24 +140,44 @@ create_postinstall_script() {
 
 set -e
 
-APP_NAME="Don't Be AFK"
-APP_PATH="/Applications/${APP_NAME}.app"
+APP_PATH="/Applications/Don't Be AFK.app"
+CLI_NAME="dont-be-afk"
+CLI_DST="/usr/local/bin/${CLI_NAME}"
 
 # Check if app was installed
 if [ ! -d "$APP_PATH" ]; then
-    echo "Error: ${APP_NAME}.app not found in /Applications"
+    echo "Error: Don't Be AFK.app not found in /Applications"
     exit 1
 fi
 
 # Set proper permissions
 chmod -R 755 "$APP_PATH"
 
-# Set executable permissions on the app bundle
-chmod +x "${APP_PATH}/Contents/MacOS/${APP_NAME}"
+# Set executable permissions on the app bundle binary (name matches CFBundleExecutable)
+EXEC_NAME=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "${APP_PATH}/Contents/Info.plist" 2>/dev/null || echo "")
+if [[ -n "$EXEC_NAME" ]]; then
+    chmod +x "${APP_PATH}/Contents/MacOS/${EXEC_NAME}"
+fi
 
-# Create symlink to bash script if it exists in the app bundle
-if [ -f "${APP_PATH}/Contents/Resources/bin/dont-be-afk" ]; then
-    chmod +x "${APP_PATH}/Contents/Resources/bin/dont-be-afk"
+# Bundled CLI: Resources/cli/bin (preferred) or legacy Resources/bin
+CLI_SRC=""
+if [ -f "${APP_PATH}/Contents/Resources/cli/bin/${CLI_NAME}" ]; then
+    CLI_SRC="${APP_PATH}/Contents/Resources/cli/bin/${CLI_NAME}"
+elif [ -f "${APP_PATH}/Contents/Resources/bin/${CLI_NAME}" ]; then
+    CLI_SRC="${APP_PATH}/Contents/Resources/bin/${CLI_NAME}"
+fi
+
+if [ -n "$CLI_SRC" ]; then
+    chmod +x "$CLI_SRC"
+    for f in "${APP_PATH}/Contents/Resources/cli/lib/"*.sh; do
+        [ -f "$f" ] && chmod +x "$f"
+    done
+    mkdir -p /usr/local/bin
+    rm -f "$CLI_DST"
+    ln -sf "$CLI_SRC" "$CLI_DST"
+    echo "Installed CLI symlink: $CLI_DST -> $CLI_SRC"
+else
+    echo "Warning: bundled CLI not found in app Resources (expected cli/bin/${CLI_NAME})"
 fi
 
 # Remove quarantine attribute (allows app to run without Gatekeeper warning)
@@ -166,9 +186,11 @@ xattr -d com.apple.quarantine "$APP_PATH" 2>/dev/null || true
 echo "Don't Be AFK installed successfully!"
 echo ""
 echo "To use the app:"
-echo "  1. Open /Applications/${APP_NAME}.app"
+echo "  1. Open /Applications/Don't Be AFK.app"
 echo "  2. Grant accessibility permissions when prompted"
 echo "  3. Configure your settings and start the automation"
+echo ""
+echo "The command-line tool is available as: /usr/local/bin/dont-be-afk"
 echo ""
 echo "Note: You may need to grant accessibility permissions in:"
 echo "  System Settings → Privacy & Security → Accessibility"

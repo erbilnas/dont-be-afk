@@ -224,8 +224,10 @@ class ScriptController: ObservableObject {
         var possiblePaths: [String] = []
         
         addDebugMessage("Bundle path: \(bundlePath)")
-        // If running from Xcode or as app bundle
+        // Bundled CLI (copied via XcodeGen resources from repo cli/)
         if bundlePath.contains(".app") {
+            possiblePaths.append("\(bundlePath)/Contents/Resources/cli/bin/dont-be-afk")
+            possiblePaths.append("\(bundlePath)/Contents/Resources/bin/dont-be-afk")
             let appDir = (bundlePath as NSString).deletingLastPathComponent
             possiblePaths.append("\(appDir)/bin/dont-be-afk")
             possiblePaths.append("\(appDir)/../bin/dont-be-afk")
@@ -252,8 +254,14 @@ class ScriptController: ObservableObject {
             addDebugMessage("Script not found in PATH via 'which'")
         }
         
-        // Use the first path that exists
-        let foundPath = possiblePaths.first { FileManager.default.fileExists(atPath: $0) } ?? "/usr/local/bin/dont-be-afk"
+        // Use the first path that exists; prefer bundled CLI path for clearer errors when missing
+        let fallbackPath: String
+        if bundlePath.contains(".app") {
+            fallbackPath = "\(bundlePath)/Contents/Resources/cli/bin/dont-be-afk"
+        } else {
+            fallbackPath = "/usr/local/bin/dont-be-afk"
+        }
+        let foundPath = possiblePaths.first { FileManager.default.fileExists(atPath: $0) } ?? fallbackPath
         addDebugMessage("Using script path: \(foundPath)")
         return foundPath
     }
