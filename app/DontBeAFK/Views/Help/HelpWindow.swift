@@ -39,6 +39,9 @@ func showHelpWindow(topic: String? = nil) {
     window.center()
     window.minSize = NSSize(width: 500, height: 400)
     window.isReleasedWhenClosed = false
+    window.isOpaque = false
+    window.backgroundColor = .clear
+    window.titlebarAppearsTransparent = true
     
     helpWindowController = NSWindowController(window: window)
     helpWindowController?.showWindow(nil)

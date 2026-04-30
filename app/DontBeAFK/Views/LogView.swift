@@ -33,7 +33,7 @@ struct LogView: View {
                 .buttonStyle(.plain)
             }
             .padding(20)
-            .background(.regularMaterial)
+            .liquidGlassToolbarStrip()
             
             Divider()
             
@@ -44,7 +44,8 @@ struct LogView: View {
                     .padding(20)
                     .foregroundColor(.primary)
             }
-            .background(Color(NSColor.textBackgroundColor))
+            .scrollContentBackground(.hidden)
+            .background(Color(NSColor.textBackgroundColor).opacity(0.55))
         }
         .frame(width: 600, height: 450)
     }

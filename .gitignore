@@ -39,6 +39,7 @@ dmg_temp/
 # Swift Package Manager
 .swiftpm/
 .build/
+.build-verify/
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 
 # CocoaPods

@@ -437,9 +437,9 @@ struct MainView: View {
                     .disabled(controller.isLoading || controller.xCoord < 0 || controller.yCoord < 0 || !controller.isCliclickInstalled || !controller.hasAccessibilityPermission)
                     .opacity((controller.isLoading || controller.xCoord < 0 || controller.yCoord < 0 || !controller.isCliclickInstalled || !controller.hasAccessibilityPermission) ? 0.5 : 1.0)
                     
-                    Button(action: {
+                    LiquidGlassSecondaryFullWidthButton {
                         showingLogs.toggle()
-                    }) {
+                    } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "doc.text")
                                 .font(.system(size: 12, weight: .medium))
@@ -448,11 +448,7 @@ struct MainView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
-                        .background(.regularMaterial)
-                        .foregroundColor(.primary)
-                        .cornerRadius(6)
                     }
-                    .buttonStyle(.plain)
                     .disabled(controller.isLoading)
                     .opacity(controller.isLoading ? 0.5 : 1.0)
                     
@@ -519,6 +515,8 @@ struct MainView: View {
             .padding(32)
             .frame(minWidth: 480, idealWidth: 520, maxWidth: .infinity)
         }
+        .scrollContentBackground(.hidden)
+        .liquidGlassWindowBackdrop()
         .frame(minWidth: 480, idealWidth: 520, maxWidth: .infinity, minHeight: 600, idealHeight: 660, maxHeight: .infinity)
         .sheet(isPresented: $showingLogs) {
             LogView()

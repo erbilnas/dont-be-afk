@@ -96,7 +96,7 @@ struct MenuBarView: View {
             .padding(.vertical, 12)
         }
         .frame(width: 240)
-        .background(.regularMaterial)
+        .liquidGlassMenuPanel(cornerRadius: 14, shadow: true)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenMainWindow"))) { _ in
             openOrActivateMainWindow()
         }

@@ -33,7 +33,7 @@ struct MenuButton: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .contentShape(Rectangle())
-            .background(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
+            .background(isHovered ? Color.primary.opacity(0.06) : Color.clear)
         }
         .buttonStyle(.plain)
         .onHover { hovering in

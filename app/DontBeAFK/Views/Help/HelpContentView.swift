@@ -36,7 +36,10 @@ struct HelpContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(24)
             }
+            .scrollContentBackground(.hidden)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .liquidGlassWindowBackdrop()
     }
     
     @ViewBuilder

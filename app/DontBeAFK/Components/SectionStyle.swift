@@ -11,10 +11,7 @@ struct SectionStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(20)
-            .background {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.regularMaterial)
-            }
+            .liquidGlassSectionCard(cornerRadius: 10)
     }
 }
 

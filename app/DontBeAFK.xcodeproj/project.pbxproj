@@ -21,6 +21,7 @@
 		BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D9E78C07EE1F22585A6313 /* ScriptController.swift */; };
 		BD68170A86098CA1DDAD5C8E /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */; };
 		C31ED2D46C4813F71C21B6B2 /* MenuComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */; };
+		F91A8B7C6D5E4F3012345678ABCDEFE1 /* LiquidGlassChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91A8B7C6D5E4F3012345678ABCDEFE0 /* LiquidGlassChrome.swift */; };
 		D891E4EE3AFECA6EFCC747C6 /* HelpWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3831F1A794422814DF2762F5 /* HelpWindow.swift */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 		BDD262F9AD412414AF3B605E /* cli */ = {isa = PBXFileReference; lastKnownFileType = folder; name = cli; path = ../cli; sourceTree = SOURCE_ROOT; };
 		CA1651340AD81D55FF78AC15 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuComponents.swift; sourceTree = "<group>"; };
+		F91A8B7C6D5E4F3012345678ABCDEFE0 /* LiquidGlassChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassChrome.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -59,6 +61,7 @@
 				B6090992437CC933CB8CD319 /* HelpComponents.swift */,
 				EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */,
 				3EE217C215932D77C643D8A1 /* SectionStyle.swift */,
+				F91A8B7C6D5E4F3012345678ABCDEFE0 /* LiquidGlassChrome.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -237,6 +240,7 @@
 				004D456BDD00E2D84704FFB1 /* OverlayWindowManager.swift in Sources */,
 				BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */,
 				11752ED9064C2BEBEE5FA0B5 /* SectionStyle.swift in Sources */,
+				F91A8B7C6D5E4F3012345678ABCDEFE1 /* LiquidGlassChrome.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
