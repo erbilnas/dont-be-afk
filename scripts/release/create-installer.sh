@@ -268,7 +268,7 @@ create_html_resources() {
         <li>✅ Customizable coordinates and intervals</li>
         <li>✅ File logging support</li>
     </ul>
-    <p><strong>System Requirements:</strong> macOS 13.0 or later</p>
+    <p><strong>System Requirements:</strong> macOS 26.0 or later</p>
 </body>
 </html>
 WELCOME_EOF

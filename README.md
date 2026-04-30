@@ -31,7 +31,7 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 
 ## Requirements
 
-- macOS 13.0 or later (for the UI app)
+- macOS 26.0 or later (for the UI app)
 - Xcode 14.0 or later (for building the UI app)
 - Homebrew (for automatic installation, optional)
 - cliclick (installed automatically via installer)

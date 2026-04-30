@@ -11,29 +11,29 @@
 		0279695EF91DCDC24826B215 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4AE8FB828131DBAD4606967 /* MainView.swift */; };
 		11752ED9064C2BEBEE5FA0B5 /* SectionStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE217C215932D77C643D8A1 /* SectionStyle.swift */; };
 		276A87CF06E0CA3E994F3864 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4FC0749878402B9BA59FAE /* AppDelegate.swift */; };
-		313088999E51BB72D4444A6B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0BB98C5F6F39DC14F2E308EF /* Assets.xcassets */; };
 		3A4EB0D10EA867C2DF317570 /* cli in Resources */ = {isa = PBXBuildFile; fileRef = BDD262F9AD412414AF3B605E /* cli */; };
 		3C286A0E56971B011AE534E9 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5356F84374E22DF845F12019 /* LogView.swift */; };
 		40AF8A5D5946674DD4BBC1E8 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1651340AD81D55FF78AC15 /* MenuBarView.swift */; };
 		80A5034F653769FBDC977B9B /* DontBeAFKApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36F4F2F21AB8C9907DB9EC /* DontBeAFKApp.swift */; };
 		92132DAFADAB49CABFEA6F00 /* HelpComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6090992437CC933CB8CD319 /* HelpComponents.swift */; };
 		93B3675E965A8751BC8278E4 /* HelpContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A17457253ACE7A795CDC09F /* HelpContentView.swift */; };
+		997BA57EECDA4674258511D2 /* LiquidGlassChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A040ABCD742B29001ADD3C1 /* LiquidGlassChrome.swift */; };
 		BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D9E78C07EE1F22585A6313 /* ScriptController.swift */; };
 		BD68170A86098CA1DDAD5C8E /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */; };
 		C31ED2D46C4813F71C21B6B2 /* MenuComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */; };
-		F91A8B7C6D5E4F3012345678ABCDEFE1 /* LiquidGlassChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91A8B7C6D5E4F3012345678ABCDEFE0 /* LiquidGlassChrome.swift */; };
 		D891E4EE3AFECA6EFCC747C6 /* HelpWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3831F1A794422814DF2762F5 /* HelpWindow.swift */; };
+		F9C7358B9E4B138C098F49B9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA9489888C8EC0D1D270C71D /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0A36F4F2F21AB8C9907DB9EC /* DontBeAFKApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DontBeAFKApp.swift; sourceTree = "<group>"; };
-		0BB98C5F6F39DC14F2E308EF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Assets.xcassets; path = DontBeAFK/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		15D9E78C07EE1F22585A6313 /* ScriptController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptController.swift; sourceTree = "<group>"; };
 		3831F1A794422814DF2762F5 /* HelpWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpWindow.swift; sourceTree = "<group>"; };
 		3EE217C215932D77C643D8A1 /* SectionStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionStyle.swift; sourceTree = "<group>"; };
 		4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		4F4F149BF3D98CEA4F8EA304 /* DontBeAFK.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DontBeAFK.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5356F84374E22DF845F12019 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
+		5A040ABCD742B29001ADD3C1 /* LiquidGlassChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassChrome.swift; sourceTree = "<group>"; };
 		5A17457253ACE7A795CDC09F /* HelpContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpContentView.swift; sourceTree = "<group>"; };
 		7E4FC0749878402B9BA59FAE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A4AE8FB828131DBAD4606967 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
@@ -41,8 +41,8 @@
 		BC7DF2A45C83EEEB5311D32C /* OverlayWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowManager.swift; sourceTree = "<group>"; };
 		BDD262F9AD412414AF3B605E /* cli */ = {isa = PBXFileReference; lastKnownFileType = folder; name = cli; path = ../cli; sourceTree = SOURCE_ROOT; };
 		CA1651340AD81D55FF78AC15 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		DA9489888C8EC0D1D270C71D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuComponents.swift; sourceTree = "<group>"; };
-		F91A8B7C6D5E4F3012345678ABCDEFE0 /* LiquidGlassChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassChrome.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -59,9 +59,9 @@
 			isa = PBXGroup;
 			children = (
 				B6090992437CC933CB8CD319 /* HelpComponents.swift */,
+				5A040ABCD742B29001ADD3C1 /* LiquidGlassChrome.swift */,
 				EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */,
 				3EE217C215932D77C643D8A1 /* SectionStyle.swift */,
-				F91A8B7C6D5E4F3012345678ABCDEFE0 /* LiquidGlassChrome.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -69,7 +69,6 @@
 		66F7DF2B1F2476EBDF52A2C0 = {
 			isa = PBXGroup;
 			children = (
-				0BB98C5F6F39DC14F2E308EF /* Assets.xcassets */,
 				BDD262F9AD412414AF3B605E /* cli */,
 				FDA8F5EA3B1A429174C4FC9F /* DontBeAFK */,
 				6743C4682E1E99352A7878F1 /* Products */,
@@ -124,6 +123,7 @@
 		FDA8F5EA3B1A429174C4FC9F /* DontBeAFK */ = {
 			isa = PBXGroup;
 			children = (
+				DA9489888C8EC0D1D270C71D /* Assets.xcassets */,
 				8906DB10D71B2B9A1E630584 /* App */,
 				1807760EDB8828F8EC91EC51 /* Components */,
 				B267D2235BB02D268C6CA6E1 /* Controllers */,
@@ -162,7 +162,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1400;
+				LastUpgradeCheck = 1700;
 				TargetAttributes = {
 					53D12A2FEBB407DF1759060D = {
 						ProvisioningStyle = Automatic;
@@ -193,7 +193,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				313088999E51BB72D4444A6B /* Assets.xcassets in Resources */,
+				F9C7358B9E4B138C098F49B9 /* Assets.xcassets in Resources */,
 				3A4EB0D10EA867C2DF317570 /* cli in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -232,6 +232,7 @@
 				92132DAFADAB49CABFEA6F00 /* HelpComponents.swift in Sources */,
 				93B3675E965A8751BC8278E4 /* HelpContentView.swift in Sources */,
 				D891E4EE3AFECA6EFCC747C6 /* HelpWindow.swift in Sources */,
+				997BA57EECDA4674258511D2 /* LiquidGlassChrome.swift in Sources */,
 				3C286A0E56971B011AE534E9 /* LogView.swift in Sources */,
 				0279695EF91DCDC24826B215 /* MainView.swift in Sources */,
 				40AF8A5D5946674DD4BBC1E8 /* MenuBarView.swift in Sources */,
@@ -240,7 +241,6 @@
 				004D456BDD00E2D84704FFB1 /* OverlayWindowManager.swift in Sources */,
 				BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */,
 				11752ED9064C2BEBEE5FA0B5 /* SectionStyle.swift in Sources */,
-				F91A8B7C6D5E4F3012345678ABCDEFE1 /* LiquidGlassChrome.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -264,7 +264,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dontbeafk.app;
 				PRODUCT_NAME = "Don't Be AFK";
@@ -290,7 +290,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dontbeafk.app;
 				PRODUCT_NAME = "Don't Be AFK";
@@ -344,7 +344,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -406,7 +406,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

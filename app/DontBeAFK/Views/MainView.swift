@@ -15,7 +15,7 @@ struct MainView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
-                // Header
+                // Header (in-window title; system title bar text is hidden for a single glass surface)
                 VStack(spacing: 12) {
                     CursorBrandIcon(size: 48, weight: .light)
                         .accessibilityHidden(true)
@@ -30,7 +30,7 @@ struct MainView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                .padding(.top, 40)
+                .padding(.top, 8)
                 
                 // Status Section
                 VStack(alignment: .leading, spacing: 16) {
@@ -104,51 +104,6 @@ struct MainView: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(Color.red.opacity(0.3), lineWidth: 1)
-                        )
-                    }
-                    
-                    // Debug messages display (only shown when debug mode is enabled)
-                    if controller.debugMode && !controller.debugMessages.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "info.circle.fill")
-                                    .foregroundColor(.blue)
-                                Text("Debug Log")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(.blue)
-                                Spacer()
-                                Button("Clear") {
-                                    controller.debugMessages = []
-                                }
-                                .buttonStyle(.plain)
-                                .font(.system(size: 9))
-                                .foregroundColor(.blue)
-                            }
-                            
-                            ScrollView(.vertical, showsIndicators: true) {
-                                LazyVStack(alignment: .leading, spacing: 4) {
-                                    ForEach(controller.debugMessages, id: \.self) { msg in
-                                        Text(msg)
-                                            .font(.system(size: 9, design: .monospaced))
-                                            .foregroundColor(.secondary)
-                                            .textSelection(.enabled)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .multilineTextAlignment(.leading)
-                                    }
-                                }
-                                .padding(.vertical, 4)
-                                .padding(.horizontal, 2)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .frame(maxHeight: 200)
-                            .background(Color(NSColor.textBackgroundColor).opacity(0.5))
-                        }
-                        .padding(12)
-                        .background(Color.blue.opacity(0.05))
-                        .cornerRadius(6)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
                         )
                     }
                 }
@@ -401,6 +356,51 @@ struct MainView: View {
                         Spacer()
                     }
                     .padding(.top, 4)
+                    
+                    // Debug messages (below debug mode toggle)
+                    if controller.debugMode && !controller.debugMessages.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "info.circle.fill")
+                                    .foregroundColor(.blue)
+                                Text("Debug Log")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(.blue)
+                                Spacer()
+                                Button("Clear") {
+                                    controller.debugMessages = []
+                                }
+                                .buttonStyle(.plain)
+                                .font(.system(size: 9))
+                                .foregroundColor(.blue)
+                            }
+                            
+                            ScrollView(.vertical, showsIndicators: true) {
+                                LazyVStack(alignment: .leading, spacing: 4) {
+                                    ForEach(controller.debugMessages, id: \.self) { msg in
+                                        Text(msg)
+                                            .font(.system(size: 9, design: .monospaced))
+                                            .foregroundColor(.secondary)
+                                            .textSelection(.enabled)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 2)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .frame(maxHeight: 200)
+                            .background(Color(NSColor.textBackgroundColor).opacity(0.5))
+                        }
+                        .padding(12)
+                        .background(Color.blue.opacity(0.05))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                        )
+                    }
                 }
                 .sectionStyle()
                 
@@ -514,7 +514,9 @@ struct MainView: View {
             .frame(minWidth: 480, idealWidth: 520, maxWidth: .infinity)
         }
         .scrollContentBackground(.hidden)
+        .scrollIndicators(.hidden)
         .liquidGlassWindowBackdrop()
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         .frame(minWidth: 480, idealWidth: 520, maxWidth: .infinity, minHeight: 600, idealHeight: 660, maxHeight: .infinity)
         .sheet(isPresented: $showingLogs) {
             LogView()
@@ -552,6 +554,15 @@ struct MainView: View {
                 
                 window.title = "Don't Be AFK"
                 window.minSize = NSSize(width: 480, height: 600)
+                // Hide the separate title strip so the toolbar area matches the liquid backdrop.
+                window.titleVisibility = .hidden
+                // Opaque window chrome would hide edge-to-edge Liquid Glass behind SwiftUI.
+                window.titlebarAppearsTransparent = true
+                window.isOpaque = false
+                window.backgroundColor = .clear
+                window.styleMask.insert(.fullSizeContentView)
+                // Transparent title bar has no default drag strip; allow dragging from the glass/content.
+                window.isMovableByWindowBackground = true
                 window.makeKeyAndOrderFront(nil)
                 break // Only configure the first matching window
             }
@@ -559,22 +570,15 @@ struct MainView: View {
     }
 }
 
-/// SF Symbol branding: click variant on macOS 14+, `cursorarrow` fallback on 13.
+/// SF Symbol branding: click variant (macOS 26+ minimum).
 struct CursorBrandIcon: View {
     var size: CGFloat
     var weight: Font.Weight = .light
 
     var body: some View {
-        Group {
-            if #available(macOS 14.0, *) {
-                Image(systemName: "cursorarrow.click")
-                    .font(.system(size: size, weight: weight))
-            } else {
-                Image(systemName: "cursorarrow")
-                    .font(.system(size: size, weight: weight))
-            }
-        }
-        .foregroundColor(.primary)
-        .symbolRenderingMode(.hierarchical)
+        Image(systemName: "cursorarrow.click")
+            .font(.system(size: size, weight: weight))
+            .foregroundColor(.primary)
+            .symbolRenderingMode(.hierarchical)
     }
 }

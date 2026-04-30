@@ -2,9 +2,9 @@ name: DontBeAFK
 options:
   bundleIdPrefix: com.dontbeafk
   deploymentTarget:
-    macOS: "13.0"
+    macOS: "26.0"
   developmentLanguage: en
-  xcodeVersion: "14.0"
+  xcodeVersion: "17.0"
 
 targets:
   DontBeAFK:
@@ -16,9 +16,10 @@ targets:
           - "**/*.plist"
         includes:
           - "**/*.swift"
+      # Must not use type: folder here — xcassets must be folder.assetcatalog so
+      # Xcode compiles icons with actool (About / Launchpad); otherwise the
+      # catalog is copied verbatim and the app has no embedded app icon.
       - path: DontBeAFK/Assets.xcassets
-        type: folder
-        buildPhase: resources
       - path: ../cli
         type: folder
         buildPhase: resources
@@ -28,7 +29,7 @@ targets:
       INFOPLIST_FILE: DontBeAFK/Info.plist
       INFOPLIST_KEY_NSHumanReadableCopyright: ""
       SWIFT_VERSION: "5.0"
-      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      MACOSX_DEPLOYMENT_TARGET: "26.0"
       GENERATE_INFOPLIST_FILE: false
       CODE_SIGN_STYLE: Automatic
       CODE_SIGN_ENTITLEMENTS: DontBeAFK/DontBeAFK.entitlements

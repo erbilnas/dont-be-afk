@@ -4,7 +4,7 @@ This guide explains how to create a macOS installer package (.pkg) and disk imag
 
 ## Prerequisites
 
-- macOS 13.0 or later
+- macOS 26.0 or later
 - Xcode 14.0 or later (includes Command Line Tools)
 - The app must be built first (see [BUILD_UI.md](BUILD_UI.md))
 
@@ -152,7 +152,7 @@ For distribution without these steps, the app must be **code signed** and
 
 - Check that the app builds successfully first
 - Verify the bundle identifier matches: `com.dontbeafk.app`
-- Ensure macOS 13.0+ is the minimum deployment target
+- Ensure macOS 26.0+ is the minimum deployment target
 
 ## Distribution
 

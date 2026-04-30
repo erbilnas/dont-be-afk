@@ -1217,24 +1217,11 @@ class ScriptController: ObservableObject {
     /// Open System Settings to Accessibility pane
     private func openAccessibilitySettings() {
         addDebugMessage("Opening System Settings → Privacy & Security → Accessibility")
-        // For macOS Ventura (13.0+) and later - use new System Settings URL
-        if #available(macOS 13.0, *) {
-            // Try the new System Settings URL format
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                NSWorkspace.shared.open(url)
-                return
-            }
-            // Fallback: open System Settings and let user navigate
-            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:")!)
-        } else {
-            // For macOS Monterey (12.0) and earlier - use System Preferences
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                NSWorkspace.shared.open(url)
-            } else {
-                // Fallback: open System Preferences
-                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:")!)
-            }
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+            return
         }
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:")!)
     }
     
     /// Add debug message to UI (public so view can call it)

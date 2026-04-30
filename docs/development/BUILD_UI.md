@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- macOS 13.0 or later
+- macOS 26.0 or later
 - Xcode 14.0 or later
 - The bash script must be installed (run `./install.sh` first)
 
@@ -75,6 +75,6 @@ The app needs the same accessibility permissions as the terminal:
 If you encounter build errors:
 - **Project file errors:** See [SETUP_XCODE.md](SETUP_XCODE.md) for instructions to create the project properly in Xcode
 - Make sure you're using Xcode 14.0 or later
-- Ensure macOS 13.0+ is installed
+- Ensure macOS 26.0+ is installed
 - Clean build folder: `Product` → `Clean Build Folder` (Shift+Cmd+K)
 - If the project file is corrupted, delete `DontBeAFK.xcodeproj` and recreate it using the instructions in [SETUP_XCODE.md](SETUP_XCODE.md)

@@ -31,6 +31,7 @@ struct DontBeAFKApp: App {
                 .frame(minWidth: 480, idealWidth: 540, maxWidth: .infinity, minHeight: 600, idealHeight: 660, maxHeight: .infinity)
         }
         .windowStyle(.automatic)
+        .windowToolbarStyle(.unified)
         .defaultSize(width: 540, height: 660)
         .windowResizability(.contentSize)
         .defaultPosition(.center)

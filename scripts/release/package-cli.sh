@@ -143,7 +143,7 @@ cat > "$TEMP_DIR/dont-be-afk-cli/CLI_README.md" << 'README_EOF'
 
 ## Requirements
 
-- macOS 13.0 or later
+- macOS 26.0 or later
 - Homebrew (for installing cliclick dependency)
 
 ## Installation

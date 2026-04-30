@@ -126,7 +126,7 @@ Then:
 ### Command Line Version (macOS)
 - **File:** `dont-be-afk-cli-macos-1.0.0.tar.gz`
 - **Description:** macOS command line version for terminal use
-- **Requirements:** macOS 13.0+, Homebrew
+- **Requirements:** macOS 26.0+, Homebrew
 - **Installation:** Extract and run `./install.sh` or follow manual installation steps
 
 ## Release Notes Template
@@ -156,7 +156,7 @@ Then:
 
 ## Requirements
 
-- macOS 13.0 or later
+- macOS 26.0 or later
 - Homebrew (for CLI version, installed automatically)
 
 ## Documentation
