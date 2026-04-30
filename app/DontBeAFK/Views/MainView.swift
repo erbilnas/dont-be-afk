@@ -17,10 +17,12 @@ struct MainView: View {
             VStack(spacing: 32) {
                 // Header
                 VStack(spacing: 12) {
-                    Image(systemName: "cursorarrow.click")
-                        .font(.system(size: 48, weight: .light))
-                        .foregroundColor(.primary)
-                        .symbolRenderingMode(.hierarchical)
+                    Image(nsImage: AppBrandIcon.nsImage)
+                        .resizable()
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 64, height: 64)
+                        .accessibilityHidden(true)
                     
                     VStack(spacing: 4) {
                         Text("Don't Be AFK")

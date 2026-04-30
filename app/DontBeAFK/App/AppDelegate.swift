@@ -95,3 +95,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
 }
+
+/// App bundle icon for SwiftUI (avoids SF Symbols that require newer macOS).
+enum AppBrandIcon {
+    static var nsImage: NSImage {
+        if let icon = NSApplication.shared.applicationIconImage {
+            return icon
+        }
+        return NSWorkspace.shared.icon(forFile: Bundle.main.bundlePath)
+    }
+}

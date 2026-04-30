@@ -16,9 +16,16 @@ struct DontBeAFKApp: App {
     @StateObject private var scriptController = ScriptController()
     
     var body: some Scene {
-        MenuBarExtra("Don't Be AFK", systemImage: "cursorarrow.click") {
+        MenuBarExtra {
             MenuBarView()
                 .environmentObject(scriptController)
+        } label: {
+            Image(nsImage: AppBrandIcon.nsImage)
+                .resizable()
+                .interpolation(.high)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 18, height: 18)
+                .accessibilityLabel("Don't Be AFK")
         }
         .menuBarExtraStyle(.window)
         
