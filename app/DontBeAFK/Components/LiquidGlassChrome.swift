@@ -2,7 +2,10 @@
 //  LiquidGlassChrome.swift
 //  DontBeAFK
 //
-//  Liquid Glass chrome (macOS 26+ minimum deployment).
+//  App minimum deployment: macOS 26+. UI uses SwiftUI materials here so the
+//  project still compiles with Xcode 16 + macOS 15 SDK (e.g. CI); native
+//  Liquid Glass (`glassEffect`, etc.) can replace these once the toolchain
+//  ships those APIs.
 //
 
 import SwiftUI
@@ -40,7 +43,9 @@ private struct LiquidGlassMenuPanelModifier: ViewModifier {
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         content
-            .glassEffect(.regular, in: shape)
+            .background {
+                shape.fill(.ultraThinMaterial)
+            }
             .clipShape(shape)
             .shadow(
                 color: Color.black.opacity(shadow ? 0.22 : 0),
@@ -57,7 +62,7 @@ private struct LiquidGlassWindowBackdropModifier: ViewModifier {
         content
             .background {
                 Rectangle()
-                    .glassEffect(.clear, in: Rectangle())
+                    .fill(.ultraThinMaterial)
                     .ignoresSafeArea()
             }
     }
@@ -71,7 +76,10 @@ private struct LiquidGlassSectionCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         content
-            .glassEffect(.regular, in: shape)
+            .background {
+                shape.fill(.ultraThinMaterial)
+            }
+            .clipShape(shape)
     }
 }
 
@@ -82,14 +90,14 @@ private struct LiquidGlassToolbarStripModifier: ViewModifier {
         content
             .background {
                 Rectangle()
-                    .glassEffect(.regular, in: Rectangle())
+                    .fill(.ultraThinMaterial)
             }
     }
 }
 
 // MARK: - Secondary actions (View Logs)
 
-/// Full-width secondary action using the Liquid Glass button style.
+/// Full-width secondary action with a material background (frosted glass look).
 struct LiquidGlassSecondaryFullWidthButton<Label: View>: View {
     let action: () -> Void
     @ViewBuilder let label: () -> Label
@@ -98,7 +106,13 @@ struct LiquidGlassSecondaryFullWidthButton<Label: View>: View {
         Button(action: action) {
             label()
                 .foregroundColor(.primary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                }
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.plain)
     }
 }
