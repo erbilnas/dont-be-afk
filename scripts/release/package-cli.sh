@@ -31,9 +31,9 @@ fi
 
 print_info "Packaging macOS command line version ${VERSION}..."
 
-# Create release directory
-rm -rf "$RELEASE_DIR"
+# Create release directory (do not wipe entire release/ — CI may store other artifacts here)
 mkdir -p "$RELEASE_DIR"
+rm -f "${RELEASE_DIR}/${ARCHIVE_NAME}.tar.gz"
 
 # Create temporary directory for packaging
 TEMP_DIR=$(mktemp -d)
@@ -53,17 +53,13 @@ cat > "$TEMP_DIR/dont-be-afk-cli/install.sh" << 'INSTALL_EOF'
 
 set -e
 
-INSTALL_DIR="/usr/local/bin"
-
 echo "Installing Don't Be AFK command line tool..."
 
-# Check if running on macOS
 if [[ "$OSTYPE" != "darwin"* ]]; then
     echo "Error: This script is for macOS only"
     exit 1
 fi
 
-# Check for cliclick
 if ! command -v cliclick &> /dev/null; then
     echo "cliclick not found. Installing via Homebrew..."
     if ! command -v brew &> /dev/null; then
@@ -74,9 +70,61 @@ if ! command -v cliclick &> /dev/null; then
     brew install cliclick
 fi
 
-# Copy script
-sudo cp bin/dont-be-afk "$INSTALL_DIR/"
-sudo chmod +x "$INSTALL_DIR/dont-be-afk"
+PREFIX="${PREFIX:-/usr/local}"
+INSTALL_DIR="${INSTALL_DIR:-$PREFIX/bin}"
+CLI_SHARE_DIR="$PREFIX/share/dont-be-afk"
+PACKAGED_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+share_parent="$(dirname "$CLI_SHARE_DIR")"
+needs_sudo=false
+if [[ ! -w "$share_parent" ]] && [[ ! -d "$share_parent" ]]; then
+    needs_sudo=true
+elif [[ -d "$share_parent" ]] && [[ ! -w "$share_parent" ]]; then
+    needs_sudo=true
+fi
+if [[ ! -w "$INSTALL_DIR" ]] && [[ ! -d "$INSTALL_DIR" ]]; then
+    needs_sudo=true
+elif [[ -d "$INSTALL_DIR" ]] && [[ ! -w "$INSTALL_DIR" ]]; then
+    needs_sudo=true
+fi
+
+if [[ ! -d "$INSTALL_DIR" ]]; then
+    if [[ "$needs_sudo" == true ]]; then
+        sudo mkdir -p "$INSTALL_DIR"
+    else
+        mkdir -p "$INSTALL_DIR"
+    fi
+fi
+
+echo "Installing CLI to $CLI_SHARE_DIR and launcher to $INSTALL_DIR..."
+
+if [[ "$needs_sudo" == true ]]; then
+    sudo mkdir -p "$CLI_SHARE_DIR"
+    sudo rm -rf "$CLI_SHARE_DIR/bin" "$CLI_SHARE_DIR/lib"
+    sudo cp -R "$PACKAGED_DIR/bin" "$PACKAGED_DIR/lib" "$CLI_SHARE_DIR/"
+    sudo chmod -R go+rX "$CLI_SHARE_DIR" 2>/dev/null || true
+    sudo chmod +x "$CLI_SHARE_DIR/bin/dont-be-afk"
+    sudo find "$CLI_SHARE_DIR/lib" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+    {
+        echo '#!/bin/bash'
+        echo "# Launcher for dont-be-afk (payload: $CLI_SHARE_DIR)"
+        echo 'exec "'"$CLI_SHARE_DIR"'/bin/dont-be-afk" "$@"'
+    } | sudo tee "$INSTALL_DIR/dont-be-afk" > /dev/null
+    sudo chmod +x "$INSTALL_DIR/dont-be-afk"
+else
+    mkdir -p "$CLI_SHARE_DIR"
+    rm -rf "$CLI_SHARE_DIR/bin" "$CLI_SHARE_DIR/lib"
+    cp -R "$PACKAGED_DIR/bin" "$PACKAGED_DIR/lib" "$CLI_SHARE_DIR/"
+    chmod -R go+rX "$CLI_SHARE_DIR" 2>/dev/null || true
+    chmod +x "$CLI_SHARE_DIR/bin/dont-be-afk"
+    find "$CLI_SHARE_DIR/lib" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+    {
+        echo '#!/bin/bash'
+        echo "# Launcher for dont-be-afk (payload: $CLI_SHARE_DIR)"
+        echo 'exec "'"$CLI_SHARE_DIR"'/bin/dont-be-afk" "$@"'
+    } > "$INSTALL_DIR/dont-be-afk"
+    chmod +x "$INSTALL_DIR/dont-be-afk"
+fi
 
 echo "✅ Installation complete!"
 echo ""
@@ -108,8 +156,8 @@ cat > "$TEMP_DIR/dont-be-afk-cli/CLI_README.md" << 'README_EOF'
 
 This will:
 - Install cliclick dependency (via Homebrew)
-- Copy the script to `/usr/local/bin`
-- Make it available system-wide
+- Copy `bin/` and `lib/` to `/usr/local/share/dont-be-afk` (standalone; safe to delete the download folder)
+- Install a small launcher script to `/usr/local/bin/dont-be-afk`
 
 ### Manual Installation
 

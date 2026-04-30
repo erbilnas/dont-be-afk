@@ -3,8 +3,14 @@
 # Don't Be AFK - Enhanced Version
 # A script to prevent your Mac from going idle by automatically clicking at specified coordinates
 
-# Get the script directory and set up paths
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve script directory (follow symlinks) so ../lib works when launched from PATH
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -h "$SOURCE" ]]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source all modules

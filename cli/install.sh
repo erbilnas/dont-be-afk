@@ -17,7 +17,11 @@ INSTALLER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN_DIR="$INSTALLER_DIR/bin"
 LIB_DIR="$INSTALLER_DIR/lib"
 SCRIPT_NAME="dont-be-afk"
-INSTALL_DIR="/usr/local/bin"
+# System install layout: copy CLI payload here so /usr/local/bin is only a launcher
+# (removing the git clone does not break the command).
+PREFIX="${PREFIX:-/usr/local}"
+INSTALL_DIR="${INSTALL_DIR:-$PREFIX/bin}"
+CLI_SHARE_DIR="$PREFIX/share/dont-be-afk"
 
 # Function to print colored output
 print_info() {
@@ -135,10 +139,16 @@ make_executable() {
 
 # Function to install script to PATH
 install_to_path() {
-    print_info "Installing to $INSTALL_DIR..."
+    print_info "Installing CLI to $CLI_SHARE_DIR and launcher to $INSTALL_DIR..."
     
-    # Check if we can write to install directory without sudo
+    local share_parent
+    share_parent="$(dirname "$CLI_SHARE_DIR")"
     local needs_sudo=false
+    if [[ ! -w "$share_parent" ]] && [[ ! -d "$share_parent" ]]; then
+        needs_sudo=true
+    elif [[ -d "$share_parent" ]] && [[ ! -w "$share_parent" ]]; then
+        needs_sudo=true
+    fi
     if [[ ! -w "$INSTALL_DIR" ]] && [[ ! -d "$INSTALL_DIR" ]]; then
         needs_sudo=true
     elif [[ -d "$INSTALL_DIR" ]] && [[ ! -w "$INSTALL_DIR" ]]; then
@@ -161,9 +171,9 @@ install_to_path() {
         fi
     fi
     
-    # Check if script already exists
+    # Check if launcher already exists
     if [[ -f "$INSTALL_DIR/$SCRIPT_NAME" ]]; then
-        print_warning "Script already exists at $INSTALL_DIR/$SCRIPT_NAME"
+        print_warning "Launcher already exists at $INSTALL_DIR/$SCRIPT_NAME"
         read -p "Overwrite? (y/N): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -172,21 +182,46 @@ install_to_path() {
         fi
     fi
     
-    # Create wrapper script that preserves the lib directory structure
-    local wrapper_content=$(cat <<EOF
+    # Copy bin + lib to a fixed prefix path (standalone; no dependency on this repo)
+    print_info "Copying scripts to $CLI_SHARE_DIR..."
+    if [[ "$needs_sudo" == true ]]; then
+        if ! sudo mkdir -p "$CLI_SHARE_DIR"; then
+            print_error "Failed to create $CLI_SHARE_DIR"
+            return 1
+        fi
+        sudo rm -rf "$CLI_SHARE_DIR/bin" "$CLI_SHARE_DIR/lib"
+        if ! sudo cp -R "$INSTALLER_DIR/bin" "$INSTALLER_DIR/lib" "$CLI_SHARE_DIR/"; then
+            print_error "Failed to copy CLI files to $CLI_SHARE_DIR"
+            return 1
+        fi
+        sudo chmod -R go+rX "$CLI_SHARE_DIR" 2>/dev/null || true
+        sudo chmod +x "$CLI_SHARE_DIR/bin/$SCRIPT_NAME"
+        sudo find "$CLI_SHARE_DIR/lib" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+    else
+        mkdir -p "$CLI_SHARE_DIR"
+        rm -rf "$CLI_SHARE_DIR/bin" "$CLI_SHARE_DIR/lib"
+        if ! cp -R "$INSTALLER_DIR/bin" "$INSTALLER_DIR/lib" "$CLI_SHARE_DIR/"; then
+            print_error "Failed to copy CLI files to $CLI_SHARE_DIR"
+            return 1
+        fi
+        chmod -R go+rX "$CLI_SHARE_DIR" 2>/dev/null || true
+        chmod +x "$CLI_SHARE_DIR/bin/$SCRIPT_NAME"
+        find "$CLI_SHARE_DIR/lib" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+    fi
+    
+    # Thin launcher: only points at the copied payload
+    local wrapper_content
+    wrapper_content=$(cat <<EOF
 #!/bin/bash
-# Wrapper script for dont-be-afk
-# Installed by installer.sh
-
-SCRIPT_DIR="$INSTALLER_DIR"
-exec "\$SCRIPT_DIR/bin/$SCRIPT_NAME" "\$@"
+# Launcher for dont-be-afk (payload: $CLI_SHARE_DIR)
+exec "$CLI_SHARE_DIR/bin/$SCRIPT_NAME" "\$@"
 EOF
 )
     
     if [[ "$needs_sudo" == true ]]; then
         if echo "$wrapper_content" | sudo tee "$INSTALL_DIR/$SCRIPT_NAME" > /dev/null; then
             sudo chmod +x "$INSTALL_DIR/$SCRIPT_NAME"
-            print_success "Installed to $INSTALL_DIR/$SCRIPT_NAME"
+            print_success "Installed to $INSTALL_DIR/$SCRIPT_NAME (payload: $CLI_SHARE_DIR)"
             print_info "You can now run 'dont-be-afk' from anywhere!"
             return 0
         else
@@ -197,7 +232,7 @@ EOF
     else
         echo "$wrapper_content" > "$INSTALL_DIR/$SCRIPT_NAME"
         chmod +x "$INSTALL_DIR/$SCRIPT_NAME"
-        print_success "Installed to $INSTALL_DIR/$SCRIPT_NAME"
+        print_success "Installed to $INSTALL_DIR/$SCRIPT_NAME (payload: $CLI_SHARE_DIR)"
         print_info "You can now run 'dont-be-afk' from anywhere!"
         return 0
     fi
@@ -218,6 +253,13 @@ verify_installation() {
     # Check if cliclick is available
     if ! command -v cliclick &> /dev/null; then
         print_error "cliclick is not in PATH"
+        errors=$((errors + 1))
+    fi
+    
+    # If a PATH launcher exists, ensure the installed payload is present
+    if [[ -f "$INSTALL_DIR/$SCRIPT_NAME" ]] && [[ ! -x "$CLI_SHARE_DIR/bin/$SCRIPT_NAME" ]]; then
+        print_error "Launcher exists at $INSTALL_DIR/$SCRIPT_NAME but payload is missing or not executable at $CLI_SHARE_DIR/bin/$SCRIPT_NAME"
+        print_info "Re-run this installer and choose to install to PATH again, or remove the stale launcher: sudo rm $INSTALL_DIR/$SCRIPT_NAME"
         errors=$((errors + 1))
     fi
     

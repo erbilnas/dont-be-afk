@@ -227,13 +227,7 @@ jobs:
       
       - name: Package Command Line Version (macOS)
         if: steps.version.outputs.skip_release != 'true'
-        run: |
-          mkdir -p release
-          tar -czf "release/dont-be-afk-cli-macos-${VERSION}.tar.gz" \
-              cli/bin/dont-be-afk \
-              cli/lib/*.sh \
-              README.md \
-              LICENSE
+        run: bash scripts/release/package-cli.sh "${VERSION}"
       
       - name: Check if release already exists
         if: steps.version.outputs.skip_release != 'true'
