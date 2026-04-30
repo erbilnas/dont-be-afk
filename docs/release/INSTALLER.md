@@ -124,6 +124,30 @@ chmod +x create-installer.sh
 chmod +x create-dmg.sh
 ```
 
+### DMG or app says “damaged” and can’t be opened
+
+macOS often shows this message for **unsigned** downloads (for example GitHub
+Release builds), even when the file is fine. It is usually **Gatekeeper and
+quarantine**, not a corrupt disk image.
+
+**If you trust the source**, remove the quarantine flag, then open again:
+
+```bash
+xattr -cr /path/to/DontBeAFK-1.0.dmg
+```
+
+After mounting, if the app inside still refuses to open, clear quarantine on
+the app (or on the copy in `/Applications`):
+
+```bash
+xattr -cr "/Volumes/Don't Be AFK/DontBeAFK.app"
+# or, if already installed:
+xattr -cr "/Applications/DontBeAFK.app"
+```
+
+For distribution without these steps, the app must be **code signed** and
+**notarized** with an Apple Developer ID (see sections above).
+
 ### Installer doesn't work
 
 - Check that the app builds successfully first
