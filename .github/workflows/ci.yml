@@ -25,9 +25,14 @@ jobs:
 
   build-ui:
     name: Build macOS UI App
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Build with xcodebuild
         working-directory: ./app
