@@ -2,10 +2,8 @@
 //  LiquidGlassChrome.swift
 //  DontBeAFK
 //
-//  App minimum deployment: macOS 26+. UI uses SwiftUI materials here so the
-//  project still compiles with Xcode 16 + macOS 15 SDK (e.g. CI); native
-//  Liquid Glass (`glassEffect`, etc.) can replace these once the toolchain
-//  ships those APIs.
+//  App minimum deployment: macOS 26+. UI uses SwiftUI materials here; native
+//  Liquid Glass (`glassEffect`, etc.) can replace these once adopted in-app.
 //
 
 import SwiftUI

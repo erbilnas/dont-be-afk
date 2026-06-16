@@ -2,112 +2,60 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
-      - main
     tags:
-      - 'v*'  # Also trigger on version tags like v1.0.0
-  workflow_dispatch:  # Allow manual triggering
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.2.3). Defaults to package.json.'
+        required: false
+        type: string
 
 jobs:
   build-and-release:
     name: Build and Create Release
     runs-on: macos-latest
     permissions:
-      contents: write  # Required to create releases
-      id-token: write  # Required for OIDC if using
-    
+      contents: write
+      id-token: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for version calculation
-      
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Set up version
         id: version
         run: |
-          # If triggered by tag, use tag version
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "skip_release=false" >> $GITHUB_OUTPUT
             echo "Version: $VERSION (from tag)"
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            echo "Version: $VERSION (manual input)"
           else
-          
-          # Get latest version from tags
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
-          if [ -z "$LATEST_TAG" ]; then
-            # No tags exist, start with 1.0.0
-            CURRENT_VERSION="1.0.0"
-          else
-            # Extract version number from tag (remove 'v' prefix)
-            CURRENT_VERSION=${LATEST_TAG#v}
+            VERSION=$(bash scripts/release/get-version.sh)
+            echo "Version: $VERSION (from package.json)"
           fi
-          
-          echo "Current version: $CURRENT_VERSION"
-          
-          # Parse version components
-          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-          MAJOR=${VERSION_PARTS[0]:-1}
-          MINOR=${VERSION_PARTS[1]:-0}
-          PATCH=${VERSION_PARTS[2]:-0}
-          
-          # Get commit messages since last tag (or last 10 commits if no tag)
-          if [ -z "$LATEST_TAG" ]; then
-            COMMITS=$(git log -10 --pretty=format:"%s")
-            COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          else
-            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s")
-            COMMIT_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
-          fi
-          
-          # Skip if no new commits
-          if [ "$COMMIT_COUNT" -eq "0" ] && [ -n "$LATEST_TAG" ]; then
-            echo "No new commits since last tag, skipping release"
-            echo "skip_release=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          
-          echo "Commit count since last tag: $COMMIT_COUNT"
-          echo "Commits:"
-          echo "$COMMITS"
-          
-          # Determine version bump based on commit messages
-          VERSION_BUMP="patch"  # Default to patch
-          
-          if echo "$COMMITS" | grep -qiE "(BREAKING CHANGE|!:)"; then
-            VERSION_BUMP="major"
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif echo "$COMMITS" | grep -qiE "^feat|^feature"; then
-            VERSION_BUMP="minor"
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          elif echo "$COMMITS" | grep -qiE "^fix|^bugfix|^bug"; then
-            VERSION_BUMP="patch"
-            PATCH=$((PATCH + 1))
-          else
-            # If no conventional commit format found, bump patch version
-            VERSION_BUMP="patch"
-            PATCH=$((PATCH + 1))
-          fi
-          
-          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-          echo "skip_release=false" >> $GITHUB_OUTPUT
-          
-          echo "Version bump: $VERSION_BUMP"
-          echo "New version: $NEW_VERSION"
-          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          fi
-      
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build macOS App
-        if: steps.version.outputs.skip_release != 'true'
         working-directory: ./app
         run: |
+          VERSION="${{ env.VERSION }}"
+          BUILD_NUMBER=$(bash ../scripts/release/get-build-number.sh)
           xcodebuild -project DontBeAFK.xcodeproj \
                      -scheme DontBeAFK \
                      -configuration Release \
@@ -115,14 +63,15 @@ jobs:
                      clean build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO
-      
+                     CODE_SIGNING_ALLOWED=NO \
+                     MARKETING_VERSION="${VERSION}" \
+                     CURRENT_PROJECT_VERSION="${BUILD_NUMBER}"
+
       - name: Create Installer Package
-        if: steps.version.outputs.skip_release != 'true'
         run: |
           # Create package structure
           mkdir -p pkg/resources pkg/scripts
-          
+
           # Create postinstall script (app name has spaces and apostrophe)
           cat > pkg/scripts/postinstall << 'EOF'
           #!/bin/bash
@@ -132,7 +81,7 @@ jobs:
           exit 0
           EOF
           chmod +x pkg/scripts/postinstall
-          
+
           # Create distribution.xml
           cat > pkg/distribution.xml << EOF
           <?xml version="1.0" encoding="utf-8"?>
@@ -154,7 +103,7 @@ jobs:
               <pkg-ref id="com.dontbeafk.app" version="${VERSION}" onConclusion="none">DontBeAFK.pkg</pkg-ref>
           </installer-gui-script>
           EOF
-          
+
           # Create component plist for pkgbuild (app name has spaces and apostrophe)
           cat > pkg/component.plist << 'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
@@ -176,7 +125,7 @@ jobs:
           </array>
           </plist>
           PLIST
-          
+
           # Build component package
           pkgbuild --root "./app/build/Build/Products/Release" \
                    --component-plist pkg/component.plist \
@@ -185,38 +134,31 @@ jobs:
                    --install-location "/Applications" \
                    --scripts pkg/scripts \
                    pkg/DontBeAFK.pkg
-          
+
           # Build product archive
           productbuild --distribution pkg/distribution.xml \
                        --package-path pkg \
                        "DontBeAFK-Installer-${VERSION}.pkg"
-      
+
       - name: Create DMG Disk Image
-        if: steps.version.outputs.skip_release != 'true'
         run: |
-          # Create temporary directory for DMG contents
           DMG_TEMP_DIR="dmg_temp"
           DMG_NAME="DontBeAFK-${VERSION}.dmg"
-          
+
           rm -rf "$DMG_TEMP_DIR"
           mkdir -p "$DMG_TEMP_DIR"
-          
-          # Copy app to temp directory (app name has spaces and apostrophe)
+
           cp -R "./app/build/Build/Products/Release/Don't Be AFK.app" "$DMG_TEMP_DIR/"
-          
-          # Create a symbolic link to Applications
           ln -s /Applications "$DMG_TEMP_DIR/Applications"
-          
-          # Create DMG using hdiutil
+
           hdiutil create -volname "Don't Be AFK" \
                          -srcfolder "$DMG_TEMP_DIR" \
                          -ov \
                          -format UDZO \
                          "$DMG_NAME"
-          
-          # Clean up
+
           rm -rf "$DMG_TEMP_DIR"
-          
+
           if [ -f "$DMG_NAME" ]; then
             echo "✅ DMG created: $DMG_NAME"
             echo "Size: $(du -h "$DMG_NAME" | cut -f1)"
@@ -224,27 +166,25 @@ jobs:
             echo "❌ Failed to create DMG"
             exit 1
           fi
-      
+
       - name: Package Command Line Version (macOS)
-        if: steps.version.outputs.skip_release != 'true'
         run: bash scripts/release/package-cli.sh "${VERSION}"
-      
+
       - name: Check if release already exists
-        if: steps.version.outputs.skip_release != 'true'
         id: check_release
         run: |
-          # Fetch all tags to check remote
           git fetch --tags --force
-          
-          # Check if tag exists locally or remotely
-          if git rev-parse "v${VERSION}" >/dev/null 2>&1 || git ls-remote --tags origin "v${VERSION}" | grep -q "v${VERSION}"; then
+
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Release v${VERSION} already exists, skipping..."
           else
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Creating new release v${VERSION}..."
           fi
-      
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Verify release files exist
         if: steps.check_release.outputs.exists == 'false'
         id: verify_files
@@ -253,33 +193,32 @@ jobs:
           INSTALLER_FILE="DontBeAFK-Installer-${VERSION}.pkg"
           DMG_FILE="DontBeAFK-${VERSION}.dmg"
           CLI_FILE="release/dont-be-afk-cli-macos-${VERSION}.tar.gz"
-          
+
           INSTALLER_EXISTS=false
           DMG_EXISTS=false
           CLI_EXISTS=false
-          
+
           if [ -f "$INSTALLER_FILE" ]; then
             echo "✓ Found installer: $INSTALLER_FILE"
             INSTALLER_EXISTS=true
           else
             echo "⚠️ Warning: Installer file not found: $INSTALLER_FILE"
           fi
-          
+
           if [ -f "$DMG_FILE" ]; then
             echo "✓ Found DMG: $DMG_FILE"
             DMG_EXISTS=true
           else
             echo "⚠️ Warning: DMG file not found: $DMG_FILE"
           fi
-          
+
           if [ -f "$CLI_FILE" ]; then
             echo "✓ Found CLI package: $CLI_FILE"
             CLI_EXISTS=true
           else
             echo "⚠️ Warning: CLI file not found: $CLI_FILE"
           fi
-          
-          # Build files list dynamically
+
           FILES_LIST=""
           if [ "$INSTALLER_EXISTS" = "true" ]; then
             FILES_LIST="${FILES_LIST}${INSTALLER_FILE}"$'\n'
@@ -290,16 +229,16 @@ jobs:
           if [ "$CLI_EXISTS" = "true" ]; then
             FILES_LIST="${FILES_LIST}${CLI_FILE}"$'\n'
           fi
-          
+
           if [ -z "$FILES_LIST" ]; then
             echo "❌ No release files found! Aborting release creation."
             exit 1
           fi
-          
+
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo -n "$FILES_LIST" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-      
+
       - name: Create Release
         if: steps.check_release.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
@@ -310,23 +249,3 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-      
-      - name: Create and push tag
-        if: steps.check_release.outputs.exists == 'false' && startsWith(github.ref, 'refs/heads/')
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Check if tag already exists before creating
-          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-            echo "Tag v${VERSION} already exists locally, skipping creation"
-          else
-            git tag -a "v${VERSION}" -m "Release v${VERSION}"
-          fi
-          
-          # Push tag only if it doesn't exist remotely
-          if git ls-remote --tags origin "v${VERSION}" | grep -q "v${VERSION}"; then
-            echo "Tag v${VERSION} already exists remotely, skipping push"
-          else
-            git push origin "v${VERSION}"
-          fi

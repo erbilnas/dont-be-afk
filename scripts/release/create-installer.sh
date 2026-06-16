@@ -22,19 +22,15 @@ APP_DIR="$PROJECT_ROOT/app"
 
 cd "$PROJECT_ROOT"
 
-# Get version from argument or git tag
+# Get version from argument, package.json (Changesets), or git tag fallback
 if [ -n "$1" ]; then
     VERSION="$1"
 else
-    GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-    VERSION="${GIT_TAG#v}"  # Remove 'v' prefix if present
-    if [ -z "$VERSION" ]; then
-        VERSION="1.0.0"
-    fi
+    VERSION="$("$SCRIPT_DIR/get-version.sh")"
 fi
 
 # Get commit count for build number
-BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo "1")
+BUILD_NUMBER="$("$SCRIPT_DIR/get-build-number.sh")"
 BUILD_DIR="$APP_DIR/build"
 PKG_DIR="$SCRIPT_DIR/../pkg"
 DMG_DIR="$PROJECT_ROOT/dmg"

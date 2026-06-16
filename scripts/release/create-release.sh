@@ -12,18 +12,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$PROJECT_ROOT"
 
-# Get version from argument or git tag
+# Get version from argument, package.json (Changesets), or git tag fallback
 if [ -n "$1" ]; then
     VERSION="$1"
 else
-    GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-    VERSION="${GIT_TAG#v}"  # Remove 'v' prefix if present
-    if [ -z "$VERSION" ]; then
-        VERSION="1.0.0"
-        echo "⚠️  No git tag found, using default version: $VERSION"
-    else
-        echo "🏷️  Using version from git tag: $VERSION"
-    fi
+    VERSION="$("$SCRIPT_DIR/get-version.sh")"
+    echo "📦 Using version from package.json: $VERSION"
 fi
 
 # Colors

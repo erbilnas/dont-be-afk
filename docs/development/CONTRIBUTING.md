@@ -51,11 +51,24 @@ Before submitting a PR, please:
 
 ## Pull Request Process
 
-1. Update documentation if needed
-2. Add tests if applicable
-3. Ensure all checks pass
-4. Request review from maintainers
-5. Address any feedback
+1. Add a [Changeset](https://github.com/changesets/changesets) when your PR includes a user-facing change:
+
+   ```bash
+   npm install
+   npm run changeset
+   ```
+
+   Choose the semver bump and write a short summary. Commit the generated `.changeset/*.md` file.
+
+   For **major** (breaking) changes, edit the changeset file and add **WHAT**, **WHY**, and **HOW to update** sections. See [`.changeset/README.md`](../../.changeset/README.md).
+
+2. Update documentation if needed
+3. Add tests if applicable
+4. Ensure all checks pass
+5. Request review from maintainers
+6. Address any feedback
+
+Merged changesets are versioned automatically via the **Changesets** GitHub Action, which opens a version PR and tags releases.
 
 ## Reporting Issues
 
