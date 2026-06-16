@@ -170,101 +170,24 @@ jobs:
       - name: Package Command Line Version (macOS)
         run: bash scripts/release/package-cli.sh "${VERSION}"
 
-      - name: Check if release assets already uploaded
-        id: check_release
-        run: |
-          git fetch --tags --force
-          TAG="v${VERSION}"
-          DMG_FILE="DontBeAFK-${VERSION}.dmg"
-          INSTALLER_FILE="DontBeAFK-Installer-${VERSION}.pkg"
-          CLI_FILE="dont-be-afk-cli-macos-${VERSION}.tar.gz"
-
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            echo "skip_upload=false" >> $GITHUB_OUTPUT
-            echo "No release for ${TAG}, will create and upload assets..."
-            exit 0
-          fi
-
-          ASSETS="$(gh release view "$TAG" --json assets -q '.assets[].name' 2>/dev/null || true)"
-          HAS_DMG=false
-          HAS_PKG=false
-          HAS_CLI=false
-
-          echo "$ASSETS" | grep -qx "$DMG_FILE" && HAS_DMG=true
-          echo "$ASSETS" | grep -qx "$INSTALLER_FILE" && HAS_PKG=true
-          echo "$ASSETS" | grep -qx "$CLI_FILE" && HAS_CLI=true
-
-          if [ "$HAS_DMG" = "true" ] && [ "$HAS_PKG" = "true" ] && [ "$HAS_CLI" = "true" ]; then
-            echo "skip_upload=true" >> $GITHUB_OUTPUT
-            echo "Release ${TAG} already has all assets, skipping upload..."
-          else
-            echo "skip_upload=false" >> $GITHUB_OUTPUT
-            echo "Release ${TAG} is missing assets (dmg=${HAS_DMG}, pkg=${HAS_PKG}, cli=${HAS_CLI}), will upload..."
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Verify release files exist
-        if: steps.check_release.outputs.skip_upload == 'false'
-        id: verify_files
         run: |
-          echo "Checking for release files..."
-          INSTALLER_FILE="DontBeAFK-Installer-${VERSION}.pkg"
-          DMG_FILE="DontBeAFK-${VERSION}.dmg"
-          CLI_FILE="release/dont-be-afk-cli-macos-${VERSION}.tar.gz"
+          test -f "DontBeAFK-Installer-${VERSION}.pkg" || { echo "Missing PKG"; exit 1; }
+          test -f "DontBeAFK-${VERSION}.dmg" || { echo "Missing DMG"; exit 1; }
+          test -f "release/dont-be-afk-cli-macos-${VERSION}.tar.gz" || { echo "Missing CLI"; exit 1; }
+          echo "All release artifacts found"
 
-          INSTALLER_EXISTS=false
-          DMG_EXISTS=false
-          CLI_EXISTS=false
-
-          if [ -f "$INSTALLER_FILE" ]; then
-            echo "✓ Found installer: $INSTALLER_FILE"
-            INSTALLER_EXISTS=true
-          else
-            echo "⚠️ Warning: Installer file not found: $INSTALLER_FILE"
-          fi
-
-          if [ -f "$DMG_FILE" ]; then
-            echo "✓ Found DMG: $DMG_FILE"
-            DMG_EXISTS=true
-          else
-            echo "⚠️ Warning: DMG file not found: $DMG_FILE"
-          fi
-
-          if [ -f "$CLI_FILE" ]; then
-            echo "✓ Found CLI package: $CLI_FILE"
-            CLI_EXISTS=true
-          else
-            echo "⚠️ Warning: CLI file not found: $CLI_FILE"
-          fi
-
-          FILES_LIST=""
-          if [ "$INSTALLER_EXISTS" = "true" ]; then
-            FILES_LIST="${FILES_LIST}${INSTALLER_FILE}"$'\n'
-          fi
-          if [ "$DMG_EXISTS" = "true" ]; then
-            FILES_LIST="${FILES_LIST}${DMG_FILE}"$'\n'
-          fi
-          if [ "$CLI_EXISTS" = "true" ]; then
-            FILES_LIST="${FILES_LIST}${CLI_FILE}"$'\n'
-          fi
-
-          if [ -z "$FILES_LIST" ]; then
-            echo "❌ No release files found! Aborting release creation."
-            exit 1
-          fi
-
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo -n "$FILES_LIST" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        if: steps.check_release.outputs.skip_upload == 'false'
+      - name: Create or update release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}
-          files: ${{ steps.verify_files.outputs.files }}
+          files: |
+            DontBeAFK-Installer-${{ env.VERSION }}.pkg
+            DontBeAFK-${{ env.VERSION }}.dmg
+            release/dont-be-afk-cli-macos-${{ env.VERSION }}.tar.gz
+          fail_on_unmatched_files: true
+          overwrite_files: true
           draft: false
           prerelease: false
           generate_release_notes: true

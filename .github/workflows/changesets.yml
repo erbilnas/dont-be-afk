@@ -31,6 +31,7 @@ jobs:
         run: npm ci
 
       - name: Create release pull request or publish
+        id: changesets
         uses: changesets/action@v1
         with:
           version: npm run version
@@ -40,3 +41,12 @@ jobs:
           createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger Release workflow
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          VERSION=$(bash scripts/release/get-version.sh)
+          gh workflow run release.yml --ref master -f "version=${VERSION}"
+          echo "Triggered Release workflow for v${VERSION} from master"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
