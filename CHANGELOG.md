@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+
+### Patch Changes
+
+- f4dfe19: ci: fix macos version of actions
+
 ## 2.0.0
 
 ### Major Changes
