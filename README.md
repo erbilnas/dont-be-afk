@@ -5,11 +5,10 @@
 <h1 align="center">Don't Be AFK</h1>
 
 <p align="center">
-  <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/macOS-13%2B-1d1d1f?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
+  <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/macOS-26%2B-1d1d1f?style=flat-square&logo=apple&logoColor=white" alt="macOS" /></a>
   &#8287;
-  <a href="https://swift.org/"><img src="https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white" alt="Swift" /></a>
+  <a href="https://swift.org/"><img src="https://img.shields.io/badge/Swift-5.0-F05138?style=flat-square&logo=swift&logoColor=white" alt="Swift" /></a>
   &#8287;
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/erbilnas/dont-be-afk?style=flat-square" alt="License" /></a>
 </p>
 
 A powerful bash script with a beautiful macOS UI that automatically clicks at custom coordinates with a custom interval using cliclick to prevent your macOS system from going idle or AFK.
@@ -32,7 +31,7 @@ Perfect for keeping your Mac active during long-running tasks, preventing screen
 ## Requirements
 
 - macOS 26.0 or later (for the UI app)
-- Xcode 14.0 or later (for building the UI app)
+- Xcode 17.0 or later (for building the UI app)
 - Homebrew (for automatic installation, optional)
 - cliclick (installed automatically via installer)
 
