@@ -28,11 +28,11 @@ struct DontBeAFKApp: App {
         WindowGroup(id: "main") {
             MainView()
                 .environmentObject(scriptController)
-                .frame(minWidth: 480, idealWidth: 540, maxWidth: .infinity, minHeight: 600, idealHeight: 660, maxHeight: .infinity)
+                .frame(minWidth: 680, idealWidth: 780, maxWidth: .infinity, minHeight: 520, idealHeight: 580, maxHeight: .infinity)
         }
         .windowStyle(.automatic)
         .windowToolbarStyle(.unified)
-        .defaultSize(width: 540, height: 660)
+        .defaultSize(width: 780, height: 580)
         .windowResizability(.contentSize)
         .defaultPosition(.center)
         .commands {
@@ -87,7 +87,7 @@ func showAboutPanel() {
     NSApp.activate(ignoringOtherApps: true)
     
     let credits = NSAttributedString(
-        string: "Keep your Mac awake by simulating mouse clicks at specified intervals.\n\nPerfect for preventing screen sleep during presentations, downloads, or remote sessions.",
+        string: AppVersionInfo.productDescription,
         attributes: [
             .font: NSFont.systemFont(ofSize: 11),
             .foregroundColor: NSColor.secondaryLabelColor,
@@ -102,8 +102,8 @@ func showAboutPanel() {
     
     NSApp.orderFrontStandardAboutPanel(options: [
         .applicationName: "Don't Be AFK",
-        .applicationVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
-        .version: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1",
+        .applicationVersion: AppVersionInfo.marketingVersion,
+        .version: AppVersionInfo.buildNumber,
         .credits: credits
     ])
 }

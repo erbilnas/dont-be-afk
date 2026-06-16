@@ -39,6 +39,7 @@ class ScriptController: ObservableObject {
     private var clickMonitorTimer: Timer?
     private var lastLogSize: UInt64 = 0
     private var overlayUpdatePending = false
+    private var accessibilityObserver: NSObjectProtocol?
     
     // Lazily compute script path to avoid blocking during init
     private var scriptPath: String {
@@ -73,6 +74,15 @@ class ScriptController: ObservableObject {
         // Load config synchronously - it's a small file read
         loadConfigSync()
         
+        // Re-check Accessibility when returning from System Settings
+        accessibilityObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.checkAccessibilityPermission()
+        }
+
         // Schedule delayed initialization on a strong reference
         // Using Timer instead of DispatchQueue to ensure the object stays alive
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
@@ -93,6 +103,10 @@ class ScriptController: ObservableObject {
         
         return appDir.path
     }
+
+    private func readTextFile(at path: String) throws -> String {
+        try String(contentsOf: URL(fileURLWithPath: path), encoding: .utf8)
+    }
     
     private func loadConfigSync() {
         guard FileManager.default.fileExists(atPath: configFile) else {
@@ -102,7 +116,7 @@ class ScriptController: ObservableObject {
         
         addDebugMessage("Loading config from: \(configFile)")
         do {
-            let content = try String(contentsOfFile: configFile, encoding: .utf8)
+            let content = try readTextFile(at: configFile)
             let lines = content.components(separatedBy: "\n")
             
             for line in lines {
@@ -167,7 +181,7 @@ class ScriptController: ObservableObject {
         
         // Read PID and kill the process if running
         do {
-            let pidString = try String(contentsOfFile: pidFilePath, encoding: .utf8)
+            let pidString = try readTextFile(at: pidFilePath)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             if let pid = Int(pidString) {
                 addDebugMessage("Found existing PID: \(pid)")
@@ -306,6 +320,9 @@ class ScriptController: ObservableObject {
         // as this can cause crashes with SwiftUI's observation system
         statusTimer?.invalidate()
         clickMonitorTimer?.invalidate()
+        if let accessibilityObserver {
+            NotificationCenter.default.removeObserver(accessibilityObserver)
+        }
     }
     
     private func showError(_ message: String) {
@@ -355,7 +372,7 @@ class ScriptController: ObservableObject {
         guard FileManager.default.fileExists(atPath: configFile) else { return }
         
         do {
-            let content = try String(contentsOfFile: configFile, encoding: .utf8)
+            let content = try readTextFile(at: configFile)
             let lines = content.components(separatedBy: "\n")
             
             for line in lines {
@@ -416,7 +433,7 @@ class ScriptController: ObservableObject {
         
         autoreleasepool {
             do {
-                let pidString = try String(contentsOfFile: pidFilePath, encoding: .utf8)
+                let pidString = try readTextFile(at: pidFilePath)
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 if let pid = Int(pidString) {
                     pidValue = pid
@@ -669,7 +686,7 @@ class ScriptController: ObservableObject {
                             
                             // Check if PID file exists
                             if FileManager.default.fileExists(atPath: pidFilePath) {
-                                if let pidContent = try? String(contentsOfFile: pidFilePath).trimmingCharacters(in: .whitespacesAndNewlines),
+                                if let pidContent = try? readTextFile(at: pidFilePath).trimmingCharacters(in: .whitespacesAndNewlines),
                                    let pidValue = Int(pidContent) {
                                     errorDetails += "PID file exists with PID: \(pidValue)\n"
                                     errorDetails += "But process is not running.\n\n"
@@ -683,7 +700,7 @@ class ScriptController: ObservableObject {
                             
                             // Check logs if available
                             if FileManager.default.fileExists(atPath: logFilePath) {
-                                if let logContent = try? String(contentsOfFile: logFilePath) {
+                                if let logContent = try? readTextFile(at: logFilePath) {
                                     let lastLines = logContent.components(separatedBy: .newlines).suffix(5).joined(separator: "\n")
                                     if !lastLines.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                         errorDetails += "Last log entries:\n\(lastLines)"
@@ -1133,7 +1150,7 @@ class ScriptController: ObservableObject {
         }
         
         do {
-            return try String(contentsOfFile: logFile)
+            return try readTextFile(at: logFile)
         } catch {
             return "Error reading log: \(error.localizedDescription)"
         }
@@ -1161,6 +1178,11 @@ class ScriptController: ObservableObject {
         }
     }
     
+    /// Path shown in System Settings → Accessibility (stable paths keep permission across rebuilds).
+    var accessibilityAppPath: String {
+        Bundle.main.bundlePath
+    }
+
     /// Check if Accessibility permissions are granted
     func checkAccessibilityPermission() {
         let trusted = AXIsProcessTrusted()
@@ -1169,7 +1191,7 @@ class ScriptController: ObservableObject {
             if trusted {
                 self?.addDebugMessage("Accessibility permissions: Granted")
             } else {
-                self?.addDebugMessage("Accessibility permissions: Not granted")
+                self?.addDebugMessage("Accessibility permissions: Not granted (app: \(self?.accessibilityAppPath ?? "unknown"))")
             }
         }
     }
@@ -1184,7 +1206,7 @@ class ScriptController: ObservableObject {
             guard let self = self else { return }
             
             do {
-                let logContent = try String(contentsOfFile: self.logFile, encoding: .utf8)
+                let logContent = try readTextFile(at: self.logFile)
                 let lastLines = logContent.components(separatedBy: .newlines).suffix(10)
                 
                 // Check for permission warnings
@@ -1208,10 +1230,27 @@ class ScriptController: ObservableObject {
         }
     }
     
-    /// Request Accessibility permissions (opens System Settings)
+    /// Request Accessibility permissions (system prompt + System Settings)
     func requestAccessibilityPermission() {
-        addDebugMessage("Requesting Accessibility permissions...")
-        openAccessibilitySettings()
+        addDebugMessage("Requesting Accessibility permissions for: \(accessibilityAppPath)")
+
+        let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        let options = [promptKey: true] as CFDictionary
+        let trusted = AXIsProcessTrustedWithOptions(options)
+
+        DispatchQueue.main.async { [weak self] in
+            self?.hasAccessibilityPermission = trusted
+        }
+
+        if trusted {
+            addDebugMessage("Accessibility permissions granted via system prompt")
+            return
+        }
+
+        // Prompt may only open Settings; still deep-link so the user can enable the app.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.openAccessibilitySettings()
+        }
     }
     
     /// Open System Settings to Accessibility pane

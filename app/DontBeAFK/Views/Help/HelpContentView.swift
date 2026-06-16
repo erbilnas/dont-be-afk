@@ -24,12 +24,28 @@ struct HelpContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            List(topics, id: \.id, selection: $selectedTopic) { topic in
-                Label(topic.title, systemImage: topic.icon)
-                    .tag(topic.id)
+            List(selection: $selectedTopic) {
+                Section {
+                    ForEach(topics, id: \.id) { topic in
+                        Label(topic.title, systemImage: topic.icon)
+                            .tag(topic.id)
+                    }
+                } header: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "questionmark.circle")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundStyle(.primary)
+                            .symbolRenderingMode(.hierarchical)
+                        Text("Help")
+                            .font(.headline)
+                    }
+                    .textCase(nil)
+                    .padding(.vertical, 4)
+                }
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+            .scrollContentBackground(.hidden)
         } detail: {
             ScrollView {
                 helpContent(for: selectedTopic)
@@ -38,8 +54,10 @@ struct HelpContentView: View {
             }
             .scrollContentBackground(.hidden)
         }
+        .navigationSplitViewStyle(.balanced)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .liquidGlassWindowBackdrop()
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
     }
     
     @ViewBuilder

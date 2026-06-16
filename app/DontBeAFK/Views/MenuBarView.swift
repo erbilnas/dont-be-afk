@@ -11,135 +11,146 @@ import AppKit
 struct MenuBarView: View {
     @EnvironmentObject var controller: ScriptController
     @Environment(\.openWindow) var openWindow
-    
+
+    private var needsSetup: Bool {
+        !controller.isCliclickInstalled || !controller.hasAccessibilityPermission
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Status Header
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(controller.isRunning ? Color.green : Color.red)
-                    .frame(width: 8, height: 8)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(controller.isRunning ? "Running" : "Stopped")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.primary)
-                    Text(controller.statusMessage)
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            Divider()
-            
-            // Quick actions
-            VStack(spacing: 0) {
-                MenuButton(
-                    icon: controller.isRunning ? "stop.fill" : "play.fill",
-                    label: controller.isRunning ? "Stop" : "Start",
-                    action: {
-                        if controller.isRunning {
-                            controller.stop()
-                        } else {
-                            controller.start()
-                        }
-                    }
-                )
-                
-                MenuButton(
-                    icon: "gearshape",
-                    label: "Open Settings",
-                    action: {
-                        openOrActivateMainWindow()
-                    }
-                )
-                
-                MenuButton(
-                    icon: "info.circle",
-                    label: "About",
-                    action: {
-                        showAboutPanel()
-                    }
-                )
-                
-                MenuButton(
-                    icon: "power",
-                    label: "Quit",
-                    action: {
-                        NSApplication.shared.terminate(nil)
-                    },
-                    isDestructive: true
-                )
-            }
-            
-            Divider()
-            
-            // Current settings
-            VStack(alignment: .leading, spacing: 12) {
-                InfoRow(
-                    icon: "location",
-                    label: "COORDINATES",
-                    value: "(\(controller.xCoord), \(controller.yCoord))"
-                )
-                
-                InfoRow(
-                    icon: "clock",
-                    label: "INTERVAL",
-                    value: controller.interval
-                )
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            MenuBarAppHeader()
+
+            MenuInsetDivider()
+
+            MenuBarStatusCard(
+                isRunning: controller.isRunning,
+                isLoading: controller.isLoading || controller.isInstallingCliclick,
+                title: controller.statusMessage,
+                subtitle: statusSubtitle,
+                showsSetupWarning: needsSetup
+            )
+
+            MenuInsetDivider()
+
+            MenuSectionHeader(title: "Control")
+            MenuButton(
+                icon: controller.isRunning ? "stop.fill" : "play.fill",
+                label: startStopLabel,
+                action: toggleRunning,
+                isDisabled: !controller.isRunning && !canStart
+            )
+
+            MenuInsetDivider()
+
+            MenuSectionHeader(title: "Navigate")
+            MenuButton(
+                icon: "gearshape",
+                label: "Settings…",
+                action: { openSettings() },
+                shortcut: "⌘,"
+            )
+            MenuButton(
+                icon: "questionmark.circle",
+                label: "Help…",
+                action: { showHelpWindow() },
+                shortcut: "⌘?"
+            )
+            MenuButton(
+                icon: "info.circle",
+                label: "About…",
+                action: { openAboutPane() },
+                showsChevron: true
+            )
+
+            MenuInsetDivider()
+
+            MenuSectionHeader(title: "App")
+            MenuButton(
+                icon: "power",
+                label: "Quit",
+                action: { NSApplication.shared.terminate(nil) },
+                shortcut: "⌘Q",
+                isDestructive: true
+            )
+
+            MenuInsetDivider()
+
+            MenuSectionHeader(title: "Configuration")
+            configurationSection
+
+            MenuInsetDivider()
+
+            MenuBarFooter()
         }
-        .frame(width: 240)
+        .frame(width: 280)
         .liquidGlassMenuPanel(cornerRadius: 14, shadow: true)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenMainWindow"))) { _ in
-            openOrActivateMainWindow()
+            openSettings()
         }
     }
-    
-    private func openOrActivateMainWindow() {
-        // Use autoreleasepool to ensure proper memory management
-        autoreleasepool {
-            // Find existing main window
-            var foundWindow: NSWindow?
-            for window in NSApplication.shared.windows {
-                if window.frame.width >= 400 && window.frame.height >= 400 && window.isVisible {
-                    foundWindow = window
-                    break
-                }
-            }
-            
-            if let existingWindow = foundWindow {
-                // Window exists, bring it to front
-                NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
-                existingWindow.makeKeyAndOrderFront(nil)
-            } else {
-                // No window exists, open a new one
-                openWindow(id: "main")
-                activateApp()
-            }
+
+    // MARK: - Configuration
+
+    private var configurationSection: some View {
+        VStack(spacing: 0) {
+            MenuConfigRow(
+                label: "Coordinates",
+                value: "(\(controller.xCoord), \(controller.yCoord))"
+            )
+            MenuConfigRow(
+                label: "Interval",
+                value: IntervalFormatter.displayString(for: controller.interval)
+            )
+            MenuConfigRow(
+                label: "cliclick",
+                value: controller.isCliclickInstalled ? "Installed" : "Missing",
+                valueColor: controller.isCliclickInstalled ? .green : .orange
+            )
+            MenuConfigRow(
+                label: "Accessibility",
+                value: controller.hasAccessibilityPermission ? "Allowed" : "Required",
+                valueColor: controller.hasAccessibilityPermission ? .green : .orange
+            )
+        }
+        .padding(.bottom, 4)
+    }
+
+    // MARK: - Actions
+
+    private var startStopLabel: String {
+        if controller.isLoading {
+            return controller.isRunning ? "Stopping…" : "Starting…"
+        }
+        return controller.isRunning ? "Stop" : "Start"
+    }
+
+    private var statusSubtitle: String? {
+        if let pid = controller.pid, controller.isRunning {
+            return "Process ID \(pid)"
+        }
+        return nil
+    }
+
+    private var canStart: Bool {
+        controller.isCliclickInstalled
+            && controller.hasAccessibilityPermission
+            && controller.xCoord >= 0
+            && controller.yCoord >= 0
+    }
+
+    private func toggleRunning() {
+        if controller.isRunning {
+            controller.stop()
+        } else {
+            controller.start()
         }
     }
-    
-    private func activateApp() {
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            autoreleasepool {
-                for window in NSApplication.shared.windows {
-                    if window.frame.width >= 400 && window.frame.height >= 400 && window.isVisible {
-                        window.makeKeyAndOrderFront(nil)
-                        break
-                    }
-                }
-            }
-        }
+
+    private func openSettings() {
+        SettingsWindowOpener.open(openWindow: openWindow)
+    }
+
+    private func openAboutPane() {
+        SettingsWindowOpener.open(pane: .about, openWindow: openWindow)
     }
 }

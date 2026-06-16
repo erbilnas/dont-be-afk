@@ -10,22 +10,28 @@
 		004D456BDD00E2D84704FFB1 /* OverlayWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7DF2A45C83EEEB5311D32C /* OverlayWindowManager.swift */; };
 		0279695EF91DCDC24826B215 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4AE8FB828131DBAD4606967 /* MainView.swift */; };
 		11752ED9064C2BEBEE5FA0B5 /* SectionStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE217C215932D77C643D8A1 /* SectionStyle.swift */; };
+		250A3681000716E211995C0D /* SettingsWindowOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08394C2EC89A599097D897E9 /* SettingsWindowOpener.swift */; };
 		276A87CF06E0CA3E994F3864 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4FC0749878402B9BA59FAE /* AppDelegate.swift */; };
 		3A4EB0D10EA867C2DF317570 /* cli in Resources */ = {isa = PBXBuildFile; fileRef = BDD262F9AD412414AF3B605E /* cli */; };
 		3C286A0E56971B011AE534E9 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5356F84374E22DF845F12019 /* LogView.swift */; };
 		40AF8A5D5946674DD4BBC1E8 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1651340AD81D55FF78AC15 /* MenuBarView.swift */; };
+		614B3289C95A5841F8249906 /* SettingsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94BA23C95E9654FD2A5C0F9 /* SettingsComponents.swift */; };
+		79D61D451B832755857E7B28 /* SettingsPaneViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6B87837FE301E533FC9AC5 /* SettingsPaneViews.swift */; };
 		80A5034F653769FBDC977B9B /* DontBeAFKApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36F4F2F21AB8C9907DB9EC /* DontBeAFKApp.swift */; };
+		8FFDF19F8498F500C5E4F304 /* IntervalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E46AC737C57292106A58C1B /* IntervalFormatter.swift */; };
 		92132DAFADAB49CABFEA6F00 /* HelpComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6090992437CC933CB8CD319 /* HelpComponents.swift */; };
 		93B3675E965A8751BC8278E4 /* HelpContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A17457253ACE7A795CDC09F /* HelpContentView.swift */; };
 		997BA57EECDA4674258511D2 /* LiquidGlassChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A040ABCD742B29001ADD3C1 /* LiquidGlassChrome.swift */; };
 		BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D9E78C07EE1F22585A6313 /* ScriptController.swift */; };
 		BD68170A86098CA1DDAD5C8E /* OverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */; };
+		C0B068196B3DB8F174621D48 /* AppVersionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57701CACA4B44315ACCDF144 /* AppVersionInfo.swift */; };
 		C31ED2D46C4813F71C21B6B2 /* MenuComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */; };
 		D891E4EE3AFECA6EFCC747C6 /* HelpWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3831F1A794422814DF2762F5 /* HelpWindow.swift */; };
 		F9C7358B9E4B138C098F49B9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA9489888C8EC0D1D270C71D /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		08394C2EC89A599097D897E9 /* SettingsWindowOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowOpener.swift; sourceTree = "<group>"; };
 		0A36F4F2F21AB8C9907DB9EC /* DontBeAFKApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DontBeAFKApp.swift; sourceTree = "<group>"; };
 		15D9E78C07EE1F22585A6313 /* ScriptController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptController.swift; sourceTree = "<group>"; };
 		3831F1A794422814DF2762F5 /* HelpWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpWindow.swift; sourceTree = "<group>"; };
@@ -33,15 +39,19 @@
 		4E4D18F61AAD6D75F6F8C2C0 /* OverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayView.swift; sourceTree = "<group>"; };
 		4F4F149BF3D98CEA4F8EA304 /* DontBeAFK.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DontBeAFK.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5356F84374E22DF845F12019 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
+		57701CACA4B44315ACCDF144 /* AppVersionInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionInfo.swift; sourceTree = "<group>"; };
 		5A040ABCD742B29001ADD3C1 /* LiquidGlassChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassChrome.swift; sourceTree = "<group>"; };
 		5A17457253ACE7A795CDC09F /* HelpContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpContentView.swift; sourceTree = "<group>"; };
+		6E46AC737C57292106A58C1B /* IntervalFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalFormatter.swift; sourceTree = "<group>"; };
 		7E4FC0749878402B9BA59FAE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9D6B87837FE301E533FC9AC5 /* SettingsPaneViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPaneViews.swift; sourceTree = "<group>"; };
 		A4AE8FB828131DBAD4606967 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		B6090992437CC933CB8CD319 /* HelpComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpComponents.swift; sourceTree = "<group>"; };
 		BC7DF2A45C83EEEB5311D32C /* OverlayWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowManager.swift; sourceTree = "<group>"; };
 		BDD262F9AD412414AF3B605E /* cli */ = {isa = PBXFileReference; lastKnownFileType = folder; name = cli; path = ../cli; sourceTree = SOURCE_ROOT; };
 		CA1651340AD81D55FF78AC15 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		DA9489888C8EC0D1D270C71D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E94BA23C95E9654FD2A5C0F9 /* SettingsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsComponents.swift; sourceTree = "<group>"; };
 		EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuComponents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -62,6 +72,7 @@
 				5A040ABCD742B29001ADD3C1 /* LiquidGlassChrome.swift */,
 				EEDFD88DD24497B98AF487D6 /* MenuComponents.swift */,
 				3EE217C215932D77C643D8A1 /* SectionStyle.swift */,
+				E94BA23C95E9654FD2A5C0F9 /* SettingsComponents.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -92,6 +103,16 @@
 			path = Help;
 			sourceTree = "<group>";
 		};
+		7B927E4DBE431EC6EE5E8C92 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				57701CACA4B44315ACCDF144 /* AppVersionInfo.swift */,
+				6E46AC737C57292106A58C1B /* IntervalFormatter.swift */,
+				08394C2EC89A599097D897E9 /* SettingsWindowOpener.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
 		8906DB10D71B2B9A1E630584 /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -107,6 +128,7 @@
 				5356F84374E22DF845F12019 /* LogView.swift */,
 				A4AE8FB828131DBAD4606967 /* MainView.swift */,
 				CA1651340AD81D55FF78AC15 /* MenuBarView.swift */,
+				9D6B87837FE301E533FC9AC5 /* SettingsPaneViews.swift */,
 				7019CC4DE76491B79EC60F55 /* Help */,
 			);
 			path = Views;
@@ -128,6 +150,7 @@
 				1807760EDB8828F8EC91EC51 /* Components */,
 				B267D2235BB02D268C6CA6E1 /* Controllers */,
 				019CF60A1C5124952500C86A /* Overlay */,
+				7B927E4DBE431EC6EE5E8C92 /* Utilities */,
 				AEE8C6496A2FC57C5377F19F /* Views */,
 			);
 			path = DontBeAFK;
@@ -140,7 +163,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D5568BED5896884779361CD2 /* Build configuration list for PBXNativeTarget "DontBeAFK" */;
 			buildPhases = (
-				D5DC598B6577B26E0B176688 /* Set Version from Git Tag */,
+				FEC831CD39BF384FC94B5EF0 /* Set Version from Changeset */,
 				FF9E7C858532CA563CA435AB /* Sources */,
 				592BC86F1184C2EA1DEA91CF /* Resources */,
 			);
@@ -201,7 +224,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		D5DC598B6577B26E0B176688 /* Set Version from Git Tag */ = {
+		FEC831CD39BF384FC94B5EF0 /* Set Version from Changeset */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -211,14 +234,14 @@
 			);
 			inputPaths = (
 			);
-			name = "Set Version from Git Tag";
+			name = "Set Version from Changeset";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Get the latest git tag (e.g., v1.2.3 or 1.2.3)\nGIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo \"\")\n\n# Remove 'v' prefix if present\nVERSION=\"${GIT_TAG#v}\"\n\n# Default version if no tag found\nif [ -z \"$VERSION\" ]; then\n  VERSION=\"1.0.0\"\nfi\n\n# Get commit count for build number\nCOMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo \"1\")\n\n# Update build settings\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $VERSION\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $COMMIT_COUNT\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\" 2>/dev/null || true\n\necho \"Version set to: $VERSION (Build $COMMIT_COUNT)\"\n";
+			shellScript = "REPO_ROOT=\"${SRCROOT}/..\"\nVERSION=\"$(\"${REPO_ROOT}/scripts/release/get-version.sh\")\"\nBUILD_NUMBER=\"$(\"${REPO_ROOT}/scripts/release/get-build-number.sh\")\"\n\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString ${VERSION}\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion ${BUILD_NUMBER}\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\" 2>/dev/null || true\n\necho \"Version set to: ${VERSION} (Build ${BUILD_NUMBER})\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -228,10 +251,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				276A87CF06E0CA3E994F3864 /* AppDelegate.swift in Sources */,
+				C0B068196B3DB8F174621D48 /* AppVersionInfo.swift in Sources */,
 				80A5034F653769FBDC977B9B /* DontBeAFKApp.swift in Sources */,
 				92132DAFADAB49CABFEA6F00 /* HelpComponents.swift in Sources */,
 				93B3675E965A8751BC8278E4 /* HelpContentView.swift in Sources */,
 				D891E4EE3AFECA6EFCC747C6 /* HelpWindow.swift in Sources */,
+				8FFDF19F8498F500C5E4F304 /* IntervalFormatter.swift in Sources */,
 				997BA57EECDA4674258511D2 /* LiquidGlassChrome.swift in Sources */,
 				3C286A0E56971B011AE534E9 /* LogView.swift in Sources */,
 				0279695EF91DCDC24826B215 /* MainView.swift in Sources */,
@@ -241,6 +266,9 @@
 				004D456BDD00E2D84704FFB1 /* OverlayWindowManager.swift in Sources */,
 				BC03B0F41CA8587D8E335EC7 /* ScriptController.swift in Sources */,
 				11752ED9064C2BEBEE5FA0B5 /* SectionStyle.swift in Sources */,
+				614B3289C95A5841F8249906 /* SettingsComponents.swift in Sources */,
+				79D61D451B832755857E7B28 /* SettingsPaneViews.swift in Sources */,
+				250A3681000716E211995C0D /* SettingsWindowOpener.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

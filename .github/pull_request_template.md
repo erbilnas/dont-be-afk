@@ -20,6 +20,8 @@ Brief description of what this PR does.
 - [ ] My changes generate no new warnings
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally
+- [ ] I added a changeset (`npm run changeset`) for user-facing changes
+- [ ] If this is a **breaking change**, the changeset includes **WHAT**, **WHY**, and **HOW to update** (see `.changeset/README.md`)
 
 ## Screenshots (if applicable)
 Add screenshots to help explain your changes.

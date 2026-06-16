@@ -70,6 +70,16 @@ The app needs the same accessibility permissions as the terminal:
 1. Go to **System Settings** → **Privacy & Security** → **Accessibility**
 2. Add the DontBeAFK app to the allowed list
 
+**Debug builds from Xcode (Cmd+R):** macOS ties Accessibility to the app path. Xcode builds into `DerivedData` with paths that change, so permission often does not stick. Use the dev runner instead:
+
+```bash
+./scripts/build/run-dev.sh
+```
+
+This installs `Don't Be AFK Dev.app` to `~/Applications/` with a stable path. Grant Accessibility once for that app.
+
+In the app, use **Setup → Request Permission** — it shows the system prompt and the exact app path to enable.
+
 ### Build Errors
 
 If you encounter build errors:

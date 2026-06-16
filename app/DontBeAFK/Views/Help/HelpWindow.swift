@@ -15,6 +15,7 @@ func showHelpWindow(topic: String? = nil) {
     
     // Check if help window already exists
     if let existingController = helpWindowController, let window = existingController.window, window.isVisible {
+        NSApp.setActivationPolicy(.regular)
         window.makeKeyAndOrderFront(nil)
         // Update content if topic specified
         if let topic = topic, let contentView = window.contentView as? NSHostingView<HelpContentView> {
@@ -41,7 +42,12 @@ func showHelpWindow(topic: String? = nil) {
     window.isReleasedWhenClosed = false
     window.isOpaque = false
     window.backgroundColor = .clear
+    window.titleVisibility = .hidden
     window.titlebarAppearsTransparent = true
+    window.styleMask.insert(.fullSizeContentView)
+    window.isMovableByWindowBackground = true
+
+    NSApp.setActivationPolicy(.regular)
     
     helpWindowController = NSWindowController(window: window)
     helpWindowController?.showWindow(nil)
