@@ -27,3 +27,10 @@ git tag -a "$TAG" -m "Release $TAG"
 git push origin "$TAG"
 
 echo "Tagged and pushed $TAG"
+
+# GITHUB_TOKEN tag pushes do not trigger other workflows; dispatch Release explicitly.
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+  export GH_TOKEN="$GITHUB_TOKEN"
+  gh workflow run release.yml --ref "$TAG" -f "version=${VERSION}"
+  echo "Triggered Release workflow for ${TAG}"
+fi

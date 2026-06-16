@@ -14,6 +14,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,5 +37,6 @@ jobs:
           commit: 'chore: version packages'
           title: 'chore: version packages'
           publish: npm run release
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

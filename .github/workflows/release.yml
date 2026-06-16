@@ -170,23 +170,42 @@ jobs:
       - name: Package Command Line Version (macOS)
         run: bash scripts/release/package-cli.sh "${VERSION}"
 
-      - name: Check if release already exists
+      - name: Check if release assets already uploaded
         id: check_release
         run: |
           git fetch --tags --force
+          TAG="v${VERSION}"
+          DMG_FILE="DontBeAFK-${VERSION}.dmg"
+          INSTALLER_FILE="DontBeAFK-Installer-${VERSION}.pkg"
+          CLI_FILE="dont-be-afk-cli-macos-${VERSION}.tar.gz"
 
-          if gh release view "v${VERSION}" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Release v${VERSION} already exists, skipping..."
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            echo "skip_upload=false" >> $GITHUB_OUTPUT
+            echo "No release for ${TAG}, will create and upload assets..."
+            exit 0
+          fi
+
+          ASSETS="$(gh release view "$TAG" --json assets -q '.assets[].name' 2>/dev/null || true)"
+          HAS_DMG=false
+          HAS_PKG=false
+          HAS_CLI=false
+
+          echo "$ASSETS" | grep -qx "$DMG_FILE" && HAS_DMG=true
+          echo "$ASSETS" | grep -qx "$INSTALLER_FILE" && HAS_PKG=true
+          echo "$ASSETS" | grep -qx "$CLI_FILE" && HAS_CLI=true
+
+          if [ "$HAS_DMG" = "true" ] && [ "$HAS_PKG" = "true" ] && [ "$HAS_CLI" = "true" ]; then
+            echo "skip_upload=true" >> $GITHUB_OUTPUT
+            echo "Release ${TAG} already has all assets, skipping upload..."
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Creating new release v${VERSION}..."
+            echo "skip_upload=false" >> $GITHUB_OUTPUT
+            echo "Release ${TAG} is missing assets (dmg=${HAS_DMG}, pkg=${HAS_PKG}, cli=${HAS_CLI}), will upload..."
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify release files exist
-        if: steps.check_release.outputs.exists == 'false'
+        if: steps.check_release.outputs.skip_upload == 'false'
         id: verify_files
         run: |
           echo "Checking for release files..."
@@ -240,7 +259,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        if: steps.check_release.outputs.exists == 'false'
+        if: steps.check_release.outputs.skip_upload == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
